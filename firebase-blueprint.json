@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and account information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "User email address" },
+        "username": { "type": "string", "description": "User display name" },
+        "balance": { "type": "number", "description": "Account balance in USD" },
+        "totalSpent": { "type": "number", "description": "Total amount spent by user in USD" },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "User role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email", "username", "balance", "role"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "SMM service definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number", "description": "Service ID" },
+        "name": { "type": "string", "description": "Service name" },
+        "rate": { "type": "string", "description": "Service rate (e.g., $1.50)" },
+        "min": { "type": "number", "description": "Minimum order quantity" },
+        "max": { "type": "number", "description": "Maximum order quantity" },
+        "category": { "type": "string", "description": "Service category" },
+        "description": { "type": "string", "description": "Service description" }
+      },
+      "required": ["id", "name", "rate", "min", "max", "category"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "User order for an SMM service",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Order ID" },
+        "uid": { "type": "string", "description": "User UID who placed the order" },
+        "serviceId": { "type": "number", "description": "ID of the service ordered" },
+        "service": { "type": "string", "description": "Name of the service ordered" },
+        "link": { "type": "string", "description": "Link for the service" },
+        "quantity": { "type": "number", "description": "Quantity ordered" },
+        "charge": { "type": "string", "description": "Amount charged for the order" },
+        "status": { "type": "string", "enum": ["Pending", "Processing", "Completed", "Cancelled"], "description": "Order status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Order placement timestamp" }
+      },
+      "required": ["id", "uid", "serviceId", "service", "link", "quantity", "charge", "status", "createdAt"]
+    },
+    "Ticket": {
+      "title": "Ticket",
+      "description": "Support ticket",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Ticket ID" },
+        "uid": { "type": "string", "description": "User UID who created the ticket" },
+        "subject": { "type": "string", "description": "Ticket subject" },
+        "message": { "type": "string", "description": "Ticket message" },
+        "status": { "type": "string", "enum": ["Open", "Answered", "Closed"], "description": "Ticket status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Ticket creation timestamp" }
+      },
+      "required": ["id", "uid", "subject", "message", "status", "createdAt"]
+    },
+    "Refill": {
+      "title": "Refill",
+      "description": "A refill request for an order.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Refill ID" },
+        "uid": { "type": "string", "description": "User UID who created the refill" },
+        "orderId": { "type": "string", "description": "ID of the order to refill" },
+        "service": { "type": "string", "description": "Name of the service to refill" },
+        "link": { "type": "string", "description": "Link for the service" },
+        "status": { "type": "string", "enum": ["Pending", "In progress", "Completed", "Rejected", "Error"], "description": "Refill status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Refill creation timestamp" }
+      },
+      "required": ["id", "uid", "orderId", "service", "link", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/services/{serviceId}": {
+      "schema": "Service",
+      "description": "Available SMM services"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "User orders"
+    },
+    "/tickets/{ticketId}": {
+      "schema": "Ticket",
+      "description": "Support tickets"
+    },
+    "/refills/{refillId}": {
+      "schema": "Refill",
+      "description": "Refill requests"
+    }
+  }
+}
