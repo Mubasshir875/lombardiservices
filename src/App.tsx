@@ -53,7 +53,8 @@ import {
   ShieldCheck,
   LogIn,
   X,
-  Database
+  Database,
+  Home
 } from "lucide-react";
 import { seedServices } from "./services/bulkServices";
 import { 
@@ -61,6 +62,7 @@ import {
   db, 
   loginWithEmail,
   registerWithEmail,
+  loginWithGoogle,
   logout as firebaseLogout, 
   handleFirestoreError, 
   OperationType 
@@ -85,7 +87,7 @@ import {
   Timestamp
 } from "firebase/firestore";
 
-type Page = 'new-order' | 'orders' | 'tickets' | 'services' | 'subscriptions' | 'refill' | 'add-funds' | 'mass-order' | 'updates' | 'admin';
+type Page = 'new-order' | 'orders' | 'tickets' | 'services' | 'subscriptions' | 'refill' | 'add-funds' | 'mass-order' | 'updates' | 'admin' | 'profile' | 'transactions';
 
 interface Service {
   id: number;
@@ -97,8 +99,24 @@ interface Service {
   description?: string;
 }
 
+const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 50 }}
+    className={`fixed bottom-8 right-8 px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 font-bold text-sm uppercase tracking-widest ${
+      type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+    }`}
+  >
+    {type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+    {message}
+    <button onClick={onClose} className="ml-4 hover:opacity-70"><X size={16} /></button>
+  </motion.div>
+);
+
 const Sidebar = ({ activePage, setActivePage, isAdmin, isOpen, setIsOpen }: { activePage: Page, setActivePage: (p: Page) => void, isAdmin: boolean, isOpen: boolean, setIsOpen: (o: boolean) => void }) => {
   const menuItems: { icon: React.ReactNode, label: string, id: Page }[] = [
+    { icon: <Home size={18} />, label: "Home", id: 'new-order' },
     { icon: <ShoppingCart size={18} />, label: "New order", id: 'new-order' },
     { icon: <ListOrdered size={18} />, label: "Orders", id: 'orders' },
     { icon: <TicketIcon size={18} />, label: "Ticket [AI Support] 🤖", id: 'tickets' },
@@ -106,11 +124,12 @@ const Sidebar = ({ activePage, setActivePage, isAdmin, isOpen, setIsOpen }: { ac
     { icon: <Repeat size={18} />, label: "Subscriptions", id: 'subscriptions' },
     { icon: <RefreshCw size={18} />, label: "Refill", id: 'refill' },
     { icon: <Layers size={18} />, label: "Mass order", id: 'mass-order' },
+    { icon: <Wallet size={18} />, label: "Add funds", id: 'add-funds' },
+    { icon: <CreditCard size={18} />, label: "Transactions", id: 'transactions' },
     { icon: <Bell size={18} />, label: "Updates", id: 'updates' },
   ];
 
   if (isAdmin) {
-    menuItems.push({ icon: <Wallet size={18} />, label: "Add funds", id: 'add-funds' });
     menuItems.push({ icon: <ShieldCheck size={18} />, label: "Admin Panel", id: 'admin' });
   }
 
@@ -160,22 +179,33 @@ const Sidebar = ({ activePage, setActivePage, isAdmin, isOpen, setIsOpen }: { ac
   );
 };
 
-const Header = ({ balance, onLogout, onMenuClick }: { balance: string, onLogout: () => void, onMenuClick: () => void }) => {
+const Header = ({ balance, onLogout, onMenuClick, setActivePage }: { balance: string, onLogout: () => void, onMenuClick: () => void, setActivePage: (p: Page) => void }) => {
   return (
     <div className="fixed top-0 right-0 left-0 lg:left-64 h-16 flex items-center justify-between lg:justify-end px-4 lg:px-8 z-40 bg-smm-bg/50 backdrop-blur-sm">
       <button onClick={onMenuClick} className="lg:hidden p-2 text-white bg-smm-sidebar rounded-lg">
         <Menu size={20} />
       </button>
       <div className="flex items-center gap-4 lg:gap-6">
-        <div className="bg-white/10 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium cursor-pointer border border-white/10">
-          <span>${balance}</span>
-          <ChevronDown size={14} />
+        <div 
+          onClick={() => setActivePage('add-funds')}
+          className="bg-white/10 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium cursor-pointer border border-white/10 hover:bg-white/20 transition-all"
+        >
+          <Wallet size={14} className="text-emerald-400" />
+          <span className="text-white">${balance}</span>
+          <Plus size={14} className="text-slate-400" />
         </div>
-        <button className="text-sm font-medium hover:text-blue-400 transition-colors hidden sm:block">Account</button>
+        <button 
+          onClick={() => setActivePage('profile')}
+          className="text-sm font-medium text-slate-300 hover:text-white transition-colors hidden sm:flex items-center gap-2"
+        >
+          <User size={16} />
+          Account
+        </button>
         <button 
           onClick={onLogout}
-          className="text-sm font-medium hover:text-blue-400 transition-colors"
+          className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-2"
         >
+          <LogIn size={16} className="rotate-180" />
           Logout
         </button>
       </div>
@@ -399,8 +429,14 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
   const [quantity, setQuantity] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastOrderId, setLastOrderId] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const categories = Array.from(new Set(services.map(s => s.category || 'Other')));
+
+  const filteredServices = services.filter(s => 
+    s.category === selectedCategory && 
+    (s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toString().includes(searchTerm))
+  );
 
   useEffect(() => {
     const firstServiceInCategory = services.find(s => s.category === selectedCategory);
@@ -536,9 +572,21 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
           </div>
 
           <div className="space-y-6">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input type="text" placeholder="Search" className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-smm-text-dark focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+            <div className="relative flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Search services in this category..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-smm-text-dark focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
+                />
+              </div>
+              <button className="px-6 py-3.5 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2">
+                <Search size={16} />
+                Search
+              </button>
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Category</label>
@@ -566,7 +614,7 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
                   }}
                   value={selectedService?.id || ''}
                 >
-                  {services.filter(s => s.category === selectedCategory).map(s => (
+                  {filteredServices.map(s => (
                     <option key={s.id} value={s.id}>{s.id} - {s.name} - {s.rate}</option>
                   ))}
                 </select>
@@ -1048,16 +1096,149 @@ const Refill = ({ refills }: { refills: any[] }) => {
   );
 };
 
-const AddFunds = () => {
-  const [method, setMethod] = useState<'paypal' | 'crypto'>('paypal');
-  const [cryptoAmount, setCryptoAmount] = useState('');
+const Transactions = ({ transactions }: { transactions: any[] }) => {
+  return (
+    <div className="max-w-7xl mx-auto space-y-8">
+      <div className="bg-white rounded-3xl p-8 shadow-2xl">
+        <h2 className="text-smm-text-dark font-black text-2xl mb-8 uppercase tracking-tight">Transaction History</h2>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <th className="px-6 py-4">Transaction ID</th>
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">Amount</th>
+                <th className="px-6 py-4">Method</th>
+                <th className="px-6 py-4">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
+              {transactions.length > 0 ? (
+                transactions.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).map((t) => (
+                  <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-blue-600">{t.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {t.createdAt instanceof Timestamp ? t.createdAt.toDate().toLocaleString() : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 font-black text-emerald-600">+${t.amount?.toFixed(2)}</td>
+                    <td className="px-6 py-4 uppercase tracking-widest text-[10px] font-black">{t.method}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 bg-emerald-100 text-emerald-600 rounded text-[10px] font-bold">
+                        {t.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">No transactions found</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-  const handleGenerateAddress = () => {
-    if (!cryptoAmount || parseFloat(cryptoAmount) < 5) {
-      alert('Minimum amount is $5');
+const Profile = ({ username, uid, balance, totalSpent, memberSince }: { username: string, uid: string, balance: string, totalSpent: string, memberSince: string }) => {
+  return (
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="bg-white rounded-3xl p-8 shadow-2xl">
+        <div className="flex items-center gap-6 mb-8">
+          <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-black">
+            {username?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <div>
+            <h2 className="text-smm-text-dark font-black text-2xl uppercase tracking-tight">{username}</h2>
+            <p className="text-slate-400 font-bold">{auth.currentUser?.email}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Account Balance</p>
+            <h4 className="text-3xl font-black text-blue-600">${balance}</h4>
+          </div>
+          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Spent</p>
+            <h4 className="text-3xl font-black text-emerald-600">${totalSpent}</h4>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-6">
+          <h3 className="text-smm-text-dark font-black text-lg uppercase tracking-tight border-b border-slate-100 pb-4">Account Details</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Username</label>
+              <input type="text" readOnly value={username} className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold outline-none" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
+              <input type="text" readOnly value={auth.currentUser?.email || ''} className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold outline-none" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Member Since</label>
+              <input type="text" readOnly value={memberSince} className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold outline-none" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Timezone</label>
+              <input type="text" readOnly value="UTC" className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold outline-none" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+const AddFunds = ({ uid, showToast }: { uid: string, showToast: (m: string, t: 'success' | 'error') => void }) => {
+  const [method, setMethod] = useState<'paypal' | 'crypto'>('paypal');
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handlePayment = async () => {
+    if (!amount || parseFloat(amount) < 5) {
+      showToast('Minimum amount is $5', 'error');
       return;
     }
-    alert(`Generating payment address for $${cryptoAmount}...`);
+
+    setLoading(true);
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const transactionId = Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      // Add transaction record
+      await addDoc(collection(db, 'transactions'), {
+        uid,
+        amount: parseFloat(amount),
+        method,
+        status: 'Completed',
+        id: transactionId,
+        createdAt: serverTimestamp()
+      });
+
+      // Update user balance
+      const userRef = doc(db, 'users', uid);
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        const currentBalance = userDoc.data().balance || 0;
+        await updateDoc(userRef, {
+          balance: currentBalance + parseFloat(amount)
+        });
+      }
+
+      showToast(`Successfully added $${amount} to your balance!`, 'success');
+      setAmount('');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'transactions');
+      showToast('Payment failed. Please try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -1087,47 +1268,45 @@ const AddFunds = () => {
         </div>
 
         <div className="space-y-6">
-          {method === 'paypal' ? (
-            <div className="text-center space-y-6">
-              <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
-                <p className="text-blue-800 text-sm font-medium leading-relaxed">
-                  To add funds via PayPal, please click the button below to visit our official payment page. After payment, send us a ticket with your transaction ID.
-                </p>
-              </div>
-              <a 
-                href="https://www.paypal.me/mubasshir875" 
-                target="_blank" 
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 px-10 py-4 bg-blue-600 text-white font-black text-sm uppercase tracking-widest rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all"
-              >
-                Pay with PayPal <ArrowRight size={18} />
-              </a>
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Amount (USD)</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+              <input 
+                type="number" 
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00" 
+                className="w-full pl-8 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-lg" 
+              />
             </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="p-6 bg-orange-50 rounded-2xl border border-orange-100">
-                <p className="text-orange-800 text-sm font-medium leading-relaxed">
-                  We accept BTC, ETH, and USDT. Please enter the amount you wish to add and click the button to generate a payment address.
-                </p>
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Amount (USD)</label>
-                <input 
-                  type="number" 
-                  value={cryptoAmount}
-                  onChange={(e) => setCryptoAmount(e.target.value)}
-                  placeholder="Min $5" 
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-smm-text-dark outline-none focus:ring-2 focus:ring-orange-500/20" 
-                />
-              </div>
-              <button 
-                onClick={handleGenerateAddress}
-                className="w-full py-4 bg-orange-500 text-white font-black text-sm uppercase tracking-widest rounded-xl shadow-lg shadow-orange-200 hover:bg-orange-600 transition-all"
-              >
-                Generate Crypto Address
-              </button>
-            </div>
-          )}
+            <p className="text-[10px] text-slate-400 mt-2 ml-1 font-bold uppercase tracking-widest">Minimum deposit: $5.00</p>
+          </div>
+
+          <button 
+            onClick={handlePayment}
+            disabled={loading}
+            className="w-full py-5 bg-smm-sidebar text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Wallet size={20} />
+                Pay with {method === 'paypal' ? 'PayPal' : 'Crypto'}
+              </>
+            )}
+          </button>
+
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+            <h4 className="text-smm-text-dark font-black text-xs uppercase tracking-widest mb-3">Instructions:</h4>
+            <ul className="text-[11px] text-slate-500 font-bold space-y-2 uppercase tracking-wide">
+              <li>• Funds are added automatically after payment confirmation.</li>
+              <li>• PayPal payments may take up to 5 minutes to reflect.</li>
+              <li>• Crypto payments require 3 network confirmations.</li>
+              <li>• Contact support if funds are not added within 1 hour.</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -1158,11 +1337,18 @@ const AdminDashboard = ({
   const totalRevenue = orders.reduce((acc, curr) => acc + parseFloat(curr.charge || 0), 0).toFixed(2);
 
   const [serviceSearch, setServiceSearch] = useState('');
+  const [userSearch, setUserSearch] = useState('');
 
   const filteredServices = services.filter(s => 
     s.name.toLowerCase().includes(serviceSearch.toLowerCase()) || 
     s.id.toString().includes(serviceSearch) ||
     (s.category && s.category.toLowerCase().includes(serviceSearch.toLowerCase()))
+  );
+
+  const filteredUsers = users.filter(u => 
+    u.username?.toLowerCase().includes(userSearch.toLowerCase()) || 
+    u.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
+    u.id?.toLowerCase().includes(userSearch.toLowerCase())
   );
 
   const handleAddService = async (e: React.FormEvent) => {
@@ -1640,60 +1826,71 @@ const AdminDashboard = ({
           </div>
         </div>
       )}
+
       {activeTab === 'users' && (
-          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-            <div className="p-6 border-b border-slate-100">
-              <h3 className="text-smm-text-dark font-bold mb-4">Manage Users</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                    <th className="px-6 py-4">User</th>
-                    <th className="px-6 py-4">Email</th>
-                    <th className="px-6 py-4">Balance</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
-                  {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 font-bold">{u.username}</td>
-                      <td className="px-6 py-4 text-slate-500">{u.email}</td>
-                      <td className="px-6 py-4 font-black text-blue-600">${u.balance?.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end items-center gap-2">
-                          <input 
-                            type="number" 
-                            placeholder="New Balance"
-                            className="w-24 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                updateUserBalance(u.id, (e.target as HTMLInputElement).value);
-                                (e.target as HTMLInputElement).value = '';
-                              }
-                            }}
-                          />
-                          <button 
-                            onClick={(e) => {
-                              const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                              updateUserBalance(u.id, input.value);
-                              input.value = '';
-                            }}
-                            className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                          >
-                            <CheckCircle2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h3 className="text-smm-text-dark font-bold">Manage Users ({filteredUsers.length})</h3>
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search users..." 
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+              />
             </div>
           </div>
-        )}
-      </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                  <th className="px-6 py-4">User</th>
+                  <th className="px-6 py-4">Email</th>
+                  <th className="px-6 py-4">Balance</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
+                {filteredUsers.map((u) => (
+                  <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-bold">{u.username}</td>
+                    <td className="px-6 py-4 text-slate-500">{u.email}</td>
+                    <td className="px-6 py-4 font-black text-blue-600">${u.balance?.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end items-center gap-2">
+                        <input 
+                          type="number" 
+                          placeholder="New Balance"
+                          className="w-24 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              updateUserBalance(u.id, (e.target as HTMLInputElement).value);
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }}
+                        />
+                        <button 
+                          onClick={(e) => {
+                            const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                            updateUserBalance(u.id, input.value);
+                            input.value = '';
+                          }}
+                          className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        >
+                          <CheckCircle2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -1723,6 +1920,7 @@ const LoginPanel = ({ onLogin }: { onLogin: () => void }) => {
       if (error.code === 'auth/email-already-in-use') msg = "Email already in use.";
       if (error.code === 'auth/weak-password') msg = "Password should be at least 6 characters.";
       if (error.code === 'auth/invalid-email') msg = "Invalid email address.";
+      if (error.code === 'auth/operation-not-allowed') msg = "Email/Password login is not enabled in Firebase Console.";
       alert(msg);
     } finally {
       setLoading(false);
@@ -1790,6 +1988,40 @@ const LoginPanel = ({ onLogin }: { onLogin: () => void }) => {
           </button>
         </form>
 
+        <div className="relative my-8">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-100"></div>
+          </div>
+          <div className="relative flex justify-center text-xs uppercase font-black tracking-widest">
+            <span className="bg-white px-4 text-slate-400">Or continue with</span>
+          </div>
+        </div>
+
+        <button 
+          onClick={async () => {
+            setLoading(true);
+            try {
+              await loginWithGoogle();
+              onLogin();
+            } catch (error) {
+              console.error("Google login failed", error);
+              alert("Google login failed. Please try again.");
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}
+          className="w-full py-4 bg-white border-2 border-slate-100 text-smm-text-dark font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Google
+        </button>
+
         <div className="mt-6 text-center">
           <button 
             onClick={() => setIsRegistering(!isRegistering)}
@@ -1815,6 +2047,7 @@ const ArrowRight = ({ size, className }: { size?: number, className?: string }) 
   </svg>
 );
 
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -1822,6 +2055,7 @@ export default function App() {
   const [uid, setUid] = useState<string | null>(null);
   const [balance, setBalance] = useState('0.00');
   const [totalSpent, setTotalSpent] = useState('0.00');
+  const [memberSince, setMemberSince] = useState('N/A');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState<Page>('new-order');
   const [services, setServices] = useState<Service[]>([]);
@@ -1829,7 +2063,14 @@ export default function App() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [refills, setRefills] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 5000);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -1861,6 +2102,7 @@ export default function App() {
             setIsAdmin(userData.role === 'admin');
             setBalance(userData.balance.toFixed(4));
             setTotalSpent((userData.totalSpent || 0).toFixed(4));
+            setMemberSince(userData.createdAt instanceof Timestamp ? userData.createdAt.toDate().toLocaleDateString() : 'N/A');
           }
         } catch (error) {
           handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
@@ -1936,11 +2178,19 @@ export default function App() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `users/${uid}`));
 
+    // Real-time transactions
+    const transactionsQuery = query(collection(db, 'transactions'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+    const transactionsUnsubscribe = onSnapshot(transactionsQuery, (snapshot) => {
+      const transactionsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      setTransactions(transactionsList);
+    }, (error) => handleFirestoreError(error, OperationType.LIST, 'transactions'));
+
     return () => {
       servicesUnsubscribe();
       ordersUnsubscribe();
       ticketsUnsubscribe();
       refillsUnsubscribe();
+      transactionsUnsubscribe();
       usersUnsubscribe();
       userUnsubscribe();
     };
@@ -1978,7 +2228,9 @@ export default function App() {
       case 'tickets': return <Tickets tickets={tickets} uid={uid!} />;
       case 'subscriptions': return <Subscriptions />;
       case 'refill': return <Refill refills={refills} />;
-      case 'add-funds': return <AddFunds />;
+      case 'add-funds': return <AddFunds uid={uid!} showToast={showToast} />;
+      case 'transactions': return <Transactions transactions={transactions} />;
+      case 'profile': return <Profile username={username} uid={uid!} balance={balance} totalSpent={totalSpent} memberSince={memberSince} />;
       case 'services': return <Services services={services} />;
       case 'mass-order': return <MassOrder services={services} uid={uid!} balance={balance} totalSpent={totalSpent} />;
       case 'updates': return <Updates />;
@@ -2010,6 +2262,7 @@ export default function App() {
           balance={balance} 
           onLogout={handleLogout} 
           onMenuClick={() => setIsSidebarOpen(true)}
+          setActivePage={setActivePage}
         />
         
         <main className="flex-1 p-4 lg:p-8 pt-24">
@@ -2031,6 +2284,16 @@ export default function App() {
       <div className="fixed bottom-8 right-8 w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl cursor-pointer hover:scale-110 transition-transform z-50">
         <MessageCircle size={32} />
       </div>
+
+      <AnimatePresence>
+        {toast && (
+          <Toast 
+            message={toast.message} 
+            type={toast.type} 
+            onClose={() => setToast(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -163,10 +163,34 @@ export const bulkServices = [
 
   // Spotify Mobile Plays (Royalties Eligible)
   { id: 4819, name: "🌎 Spotify Mobile Plays [Royalties Eligible]", rate: "$1.38", min: 500, max: 200000, category: "[Elite] Spotify %100 Premium Mobile Plays [Royalties Eligible]", description: "100% premium accounts. Lifetime guarantee." },
-  { id: 4824, name: "🇮🇳 Spotify Mobile Plays [INDIA] [Royalties]", rate: "$1.53", min: 500, max: 200000, category: "[Elite] Spotify %100 Premium Mobile Plays [Royalties Eligible]", description: "Targeted Indian mobile plays." }
+  { id: 4824, name: "🇮🇳 Spotify Mobile Plays [INDIA] [Royalties]", rate: "$1.53", min: 500, max: 200000, category: "[Elite] Spotify %100 Premium Mobile Plays [Royalties Eligible]", description: "Targeted Indian mobile plays." },
+
+  // Twitch Services
+  { id: 5001, name: "🎮 Twitch Channel Followers [Instant]", rate: "$0.45", min: 100, max: 50000, category: "Twitch Services", description: "Instant start, high quality followers." },
+  { id: 5002, name: "🎮 Twitch Live Viewers [15 Min]", rate: "$0.12", min: 10, max: 10000, category: "Twitch Services", description: "Stable concurrent viewers." },
+
+  // Discord Services
+  { id: 5101, name: "💬 Discord Server Members [Offline]", rate: "$1.20", min: 100, max: 10000, category: "Discord Services", description: "Offline members for server growth." },
+  { id: 5102, name: "💬 Discord Server Members [Online]", rate: "$3.50", min: 50, max: 5000, category: "Discord Services", description: "Online members with high quality profiles." },
+
+  // Instagram Specialized
+  { id: 4280, name: "📸 Instagram Profile Visits + Reach", rate: "$0.05", min: 100, max: 1000000, category: "Instagram Specialized", description: "Boost your profile visibility." },
+  { id: 4281, name: "📸 Instagram Comment Likes [Verified Accounts]", rate: "$12.50", min: 10, max: 1000, category: "Instagram Specialized", description: "Likes from verified blue-tick accounts." },
+
+  // YouTube Specialized
+  { id: 2350, name: "🎥 YouTube Dislikes [Stable]", rate: "$5.80", min: 10, max: 5000, category: "YouTube Specialized", description: "Stable dislikes for competitive analysis." },
+  { id: 2351, name: "🎥 YouTube Video Shares [Social Media]", rate: "$0.25", min: 100, max: 100000, category: "YouTube Specialized", description: "Shares to various social platforms." },
+
+  // Threads Services
+  { id: 5201, name: "🧵 Threads Followers [Instant]", rate: "$0.85", min: 100, max: 50000, category: "Threads Services", description: "Instant delivery for Threads." },
+  { id: 5202, name: "🧵 Threads Likes [Real]", rate: "$0.40", min: 50, max: 20000, category: "Threads Services", description: "Real account likes for Threads posts." }
 ];
 
 export const seedServices = async () => {
+  console.log("Starting seedServices...");
+  let count = 0;
+  let errors = 0;
+  
   for (const service of bulkServices) {
     const serviceId = service.id.toString();
     try {
@@ -174,10 +198,19 @@ export const seedServices = async () => {
         ...service,
         createdAt: serverTimestamp()
       });
-      console.log(`Seeded service: ${service.name}`);
+      count++;
+      if (count % 10 === 0) {
+        console.log(`Seeded ${count} services...`);
+      }
     } catch (error) {
+      errors++;
       console.error(`Error seeding service ${serviceId}:`, error);
     }
   }
-  alert("Seeding complete!");
+  
+  if (errors > 0) {
+    alert(`Seeding complete with ${errors} errors. ${count} services added/updated.`);
+  } else {
+    alert(`Successfully seeded ${count} services!`);
+  }
 };
