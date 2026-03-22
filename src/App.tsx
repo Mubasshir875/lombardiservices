@@ -2129,7 +2129,10 @@ const LoginPanel = ({ onLogin, showToast }: { onLogin: () => void, showToast: (m
       if (error.code === 'auth/weak-password') msg = "Password should be at least 6 characters.";
       if (error.code === 'auth/invalid-email') msg = "Invalid email address.";
       if (error.code === 'auth/operation-not-allowed') msg = "Email/Password login is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.";
-      if (error.code === 'auth/unauthorized-domain') msg = "This domain is not authorized for Firebase Auth. Please add it to 'Authorized domains' in Firebase Console.";
+      if (error.code === 'auth/unauthorized-domain') {
+        msg = "This domain is not authorized. Please add these to 'Authorized domains' in Firebase Console: " + 
+              window.location.hostname + ", lombardiservice.netlify.app";
+      }
       showToast(msg, 'error');
     } finally {
       setLoading(false);
@@ -2217,7 +2220,10 @@ const LoginPanel = ({ onLogin, showToast }: { onLogin: () => void, showToast: (m
               console.error("Google login failed", error);
               let msg = `Google login failed: ${error.code || error.message}`;
               if (error.code === 'auth/popup-blocked') msg = "Popup blocked. Please allow popups for this site.";
-              if (error.code === 'auth/unauthorized-domain') msg = "This domain is not authorized for Firebase Auth. Please add it to 'Authorized domains' in Firebase Console.";
+              if (error.code === 'auth/unauthorized-domain') {
+                msg = "This domain is not authorized. Please add these to 'Authorized domains' in Firebase Console: " + 
+                      window.location.hostname + ", lombardiservice.netlify.app";
+              }
               showToast(msg, 'error');
             } finally {
               setLoading(false);
@@ -2290,14 +2296,12 @@ export default function App() {
       try {
         if (user) {
           console.log("User logged in:", user.uid);
-          setUid(user.uid);
-          setIsLoggedIn(true);
           
           // Check if user exists in Firestore, if not create
           const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
           
-          if (!userDoc.exists()) {
+            if (!userDoc.exists()) {
             console.log("Creating new user profile...");
             const newUser = {
               uid: user.uid,
@@ -2317,12 +2321,31 @@ export default function App() {
           } else {
             console.log("User profile found.");
             const userData = userDoc.data();
-            setIsAdmin(userData.role === 'admin');
-            setUsername(userData.username || 'User');
+            
+            // Ensure admin role is set if email matches
+            let role = userData.role;
+            if (user.email === 'shaikhmubasshir875@gmail.com' && role !== 'admin') {
+              role = 'admin';
+              await updateDoc(userDocRef, { role: 'admin' });
+            }
+            
+            setIsAdmin(role === 'admin');
+            
+            // If the stored username is generic but we have a display name from Google, update it
+            let currentUsername = userData.username || 'User';
+            if ((currentUsername === 'User' || currentUsername === 'Guest') && user.displayName) {
+              currentUsername = user.displayName;
+              await updateDoc(userDocRef, { username: currentUsername });
+            }
+            
+            setUsername(currentUsername);
             setBalance(userData.balance.toFixed(4));
             setTotalSpent((userData.totalSpent || 0).toFixed(4));
             setMemberSince(userData.createdAt instanceof Timestamp ? userData.createdAt.toDate().toLocaleDateString() : 'N/A');
           }
+
+          setUid(user.uid);
+          setIsLoggedIn(true);
         } else {
           setIsLoggedIn(false);
           setIsAdmin(false);
@@ -2400,6 +2423,7 @@ export default function App() {
         const data = doc.data();
         setBalance(data.balance.toFixed(4));
         setTotalSpent((data.totalSpent || 0).toFixed(4));
+        if (data.username) setUsername(data.username);
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `users/${uid}`));
 
@@ -2420,6 +2444,14 @@ export default function App() {
       userUnsubscribe();
     };
   }, [isLoggedIn, isAdmin, uid]);
+
+  // Auto-seed services if admin and empty
+  useEffect(() => {
+    if (isAdmin && isLoggedIn && isAuthReady && services.length === 0) {
+      console.log("Admin detected and no services found. Auto-seeding...");
+      seedServices();
+    }
+  }, [isAdmin, isLoggedIn, isAuthReady, services.length]);
 
   const handleLogin = () => {
     // Handled by onAuthStateChanged
