@@ -60,7 +60,7 @@ import {
   Home
 } from "lucide-react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { seedServices } from "./services/bulkServices";
+import { seedServices as seedBulkServices } from "./services/bulkServices";
 import { 
   auth, 
   db, 
@@ -1454,13 +1454,15 @@ const AdminDashboard = ({
   orders, 
   tickets,
   refills,
-  users
+  users,
+  showToast
 }: { 
   services: Service[], 
   orders: any[],
   tickets: any[],
   refills: any[],
-  users: any[]
+  users: any[],
+  showToast: (msg: string, type: 'success' | 'error') => void
 }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'orders' | 'tickets' | 'refills' | 'users'>('dashboard');
   const [newName, setNewName] = useState('');
@@ -1469,6 +1471,7 @@ const AdminDashboard = ({
   const [newMax, setNewMax] = useState('');
   const [newCategory, setNewCategory] = useState('Instagram Followers');
   const [newDescription, setNewDescription] = useState('');
+  const [isSeeding, setIsSeeding] = useState(false);
 
   const totalRevenue = orders.reduce((acc, curr) => acc + parseFloat(curr.charge || 0), 0).toFixed(2);
 
@@ -1501,26 +1504,12 @@ const AdminDashboard = ({
     t.status.toLowerCase().includes(ticketSearch.toLowerCase())
   );
 
-  const seedServices = async () => {
-    const initialServices = [
-      { id: 1001, name: "Instagram Followers [Real]", rate: "$0.50", min: 100, max: 10000, category: "Instagram Followers", description: "Real followers, high quality." },
-      { id: 1002, name: "Instagram Likes [Fast]", rate: "$0.10", min: 50, max: 5000, category: "Instagram Likes", description: "Fast delivery, no drop." },
-      { id: 1003, name: "YouTube Views [Non-Drop]", rate: "$2.50", min: 1000, max: 100000, category: "YouTube Views", description: "High retention views." },
-      { id: 1004, name: "TikTok Followers [Instant]", rate: "$0.80", min: 100, max: 20000, category: "TikTok Followers", description: "Instant start, worldwide." },
-      { id: 1005, name: "Facebook Page Likes", rate: "$1.20", min: 100, max: 10000, category: "Facebook Likes", description: "Real page likes." }
-    ];
-
+  const handleSeedBulk = async () => {
+    setIsSeeding(true);
     try {
-      for (const service of initialServices) {
-        await setDoc(doc(db, 'services', service.id.toString()), {
-          ...service,
-          createdAt: serverTimestamp()
-        });
-      }
-      alert('Initial services seeded successfully!');
-    } catch (error) {
-      console.error("Error seeding services", error);
-      alert('Failed to seed services.');
+      await seedBulkServices();
+    } finally {
+      setIsSeeding(false);
     }
   };
 
@@ -1598,11 +1587,23 @@ const AdminDashboard = ({
     }
   };
 
-  const updateUserBalance = async (userId: string, amount: string) => {
-    if (!amount || isNaN(parseFloat(amount))) return;
+  const updateUserBalance = async (userId: string, newBalance: number, addedAmount?: number) => {
     try {
-      await updateDoc(doc(db, 'users', userId), { balance: parseFloat(amount) });
-      alert('User balance updated!');
+      await updateDoc(doc(db, 'users', userId), { balance: newBalance });
+      
+      if (addedAmount !== undefined) {
+        // Add a transaction record for the balance update
+        await addDoc(collection(db, 'transactions'), {
+          uid: userId,
+          amount: addedAmount,
+          method: 'Admin Adjustment',
+          status: 'completed',
+          createdAt: serverTimestamp(),
+          type: addedAmount >= 0 ? 'deposit' : 'withdrawal'
+        });
+      }
+      
+      showToast(addedAmount !== undefined ? `Added $${addedAmount.toFixed(2)} to user balance!` : 'User balance updated!', "success");
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
     }
@@ -1644,10 +1645,21 @@ const AdminDashboard = ({
         <h2 className="text-smm-text-dark font-black text-2xl uppercase tracking-tight">Admin Control Center</h2>
         <div className="flex flex-wrap gap-2">
           <button 
-            onClick={seedServices}
-            className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-500 text-white hover:bg-emerald-600 transition-all uppercase tracking-widest"
+            onClick={handleSeedBulk}
+            disabled={isSeeding}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest flex items-center gap-2 ${isSeeding ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl'}`}
           >
-            Seed Services
+            {isSeeding ? (
+              <>
+                <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                Seeding...
+              </>
+            ) : (
+              <>
+                <Database size={14} />
+                Seed Bulk Services
+              </>
+            )}
           </button>
           <button 
             onClick={() => setActiveTab('dashboard')}
@@ -1789,11 +1801,21 @@ const AdminDashboard = ({
                 </button>
                 <button 
                   type="button"
-                  onClick={seedServices}
-                  className="flex-1 py-4 bg-emerald-600 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                  onClick={handleSeedBulk}
+                  disabled={isSeeding}
+                  className={`flex-1 py-4 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${isSeeding ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
                 >
-                  <Database size={16} />
-                  Seed Bulk Services
+                  {isSeeding ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Seeding...
+                    </>
+                  ) : (
+                    <>
+                      <Database size={16} />
+                      Seed Bulk Services
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -2112,30 +2134,77 @@ const AdminDashboard = ({
                   <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-bold">{u.username}</td>
                     <td className="px-6 py-4 text-slate-500">{u.email}</td>
-                    <td className="px-6 py-4 font-black text-blue-600">${u.balance?.toFixed(2)}</td>
+                    <td className="px-6 py-4 font-black text-blue-600">${(u.balance || 0).toFixed(2)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-2">
-                        <input 
-                          type="number" 
-                          placeholder="New Balance"
-                          className="w-24 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              updateUserBalance(u.id, (e.target as HTMLInputElement).value);
-                              (e.target as HTMLInputElement).value = '';
-                            }
-                          }}
-                        />
-                        <button 
-                          onClick={(e) => {
-                            const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                            updateUserBalance(u.id, input.value);
-                            input.value = '';
-                          }}
-                          className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                        >
-                          <CheckCircle2 size={14} />
-                        </button>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-[8px] text-slate-400 uppercase font-black">Add Funds</span>
+                          <div className="flex items-center gap-1">
+                            <input 
+                              type="number" 
+                              placeholder="Amount"
+                              className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none focus:ring-1 focus:ring-blue-500"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  const val = (e.target as HTMLInputElement).value;
+                                  if (val) {
+                                    const amount = parseFloat(val);
+                                    updateUserBalance(u.id, (u.balance || 0) + amount, amount);
+                                    (e.target as HTMLInputElement).value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <button 
+                              onClick={(e) => {
+                                const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                                const val = input.value;
+                                if (val) {
+                                  const amount = parseFloat(val);
+                                  updateUserBalance(u.id, (u.balance || 0) + amount, amount);
+                                  input.value = '';
+                                }
+                              }}
+                              className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
+                              title="Add Funds"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="h-8 w-px bg-slate-100 mx-1" />
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-[8px] text-slate-400 uppercase font-black">Set Total</span>
+                          <div className="flex items-center gap-1">
+                            <input 
+                              type="number" 
+                              placeholder="New Total"
+                              className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none focus:ring-1 focus:ring-blue-500"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  const val = (e.target as HTMLInputElement).value;
+                                  if (val) {
+                                    updateUserBalance(u.id, parseFloat(val));
+                                    (e.target as HTMLInputElement).value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <button 
+                              onClick={(e) => {
+                                const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                                if (input.value) {
+                                  updateUserBalance(u.id, parseFloat(input.value));
+                                  input.value = '';
+                                }
+                              }}
+                              className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                              title="Set Balance"
+                            >
+                              <CheckCircle2 size={12} />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -2563,7 +2632,7 @@ export default function App() {
   useEffect(() => {
     if (isAdmin && isLoggedIn && isAuthReady && services.length === 0) {
       console.log("Admin detected and no services found. Auto-seeding...");
-      seedServices();
+      seedBulkServices();
     }
   }, [isAdmin, isLoggedIn, isAuthReady, services.length]);
 
@@ -2625,6 +2694,7 @@ export default function App() {
           tickets={tickets}
           refills={refills}
           users={users}
+          showToast={showToast}
         />
       );
       default: return <div className="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Coming Soon: {activePage}</div>;
