@@ -4,7 +4,7 @@
  */
 
 import { motion, AnimatePresence } from "motion/react";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Component } from "react";
 import { 
   LogOut,
   ShoppingCart, 
@@ -20,6 +20,7 @@ import {
   Bell,
   ChevronDown,
   AlertTriangle,
+  AlertCircle,
   User,
   BarChart3,
   CreditCard,
@@ -456,9 +457,9 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
     
     const qty = parseInt(quantity);
     const rate = parseFloat(selectedService.rate.replace('$', ''));
-    const charge = (rate * qty / 1000).toFixed(2);
+    const charge = parseFloat((rate * qty / 1000).toFixed(2));
 
-    if (parseFloat(balance) < parseFloat(charge)) {
+    if (parseFloat(balance) < charge) {
       alert('Insufficient balance. Please add funds.');
       return;
     }
@@ -482,8 +483,8 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
       // Deduct balance and update totalSpent
       const userRef = doc(db, 'users', uid);
       await updateDoc(userRef, {
-        balance: parseFloat((parseFloat(balance) - parseFloat(charge)).toFixed(4)),
-        totalSpent: parseFloat((parseFloat(totalSpent) + parseFloat(charge)).toFixed(4))
+        balance: parseFloat((parseFloat(balance) - charge).toFixed(4)),
+        totalSpent: parseFloat((parseFloat(totalSpent) + charge).toFixed(4))
       });
 
       setLastOrderId(orderId);
@@ -1240,7 +1241,15 @@ const Profile = ({ username, uid, balance, totalSpent, memberSince }: { username
     </div>
   );
 };
-const AddFunds = ({ uid, showToast }: { uid: string, showToast: (m: string, t: 'success' | 'error') => void }) => {
+const AddFunds = ({ 
+  uid, 
+  showToast,
+  paypalError
+}: { 
+  uid: string, 
+  showToast: (m: string, t: 'success' | 'error') => void,
+  paypalError: boolean
+}) => {
   const [method, setMethod] = useState<'paypal' | 'crypto'>('paypal');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -1365,7 +1374,16 @@ const AddFunds = ({ uid, showToast }: { uid: string, showToast: (m: string, t: '
 
           {method === 'paypal' ? (
             <div className="mt-4">
-              {(!amount || parseFloat(amount) < 5) ? (
+              {paypalError ? (
+                <div className="bg-red-50 p-6 rounded-2xl border border-red-100 text-center">
+                  <AlertCircle className="mx-auto text-red-500 mb-3" size={32} />
+                  <h4 className="text-red-600 font-black text-xs uppercase tracking-widest mb-2">PayPal Error</h4>
+                  <p className="text-[10px] text-red-500 font-bold uppercase tracking-wide">
+                    The PayPal payment system failed to load. This is likely due to an invalid PayPal Client ID. 
+                    Please contact support or use Crypto instead.
+                  </p>
+                </div>
+              ) : (!amount || parseFloat(amount) < 5) ? (
                 <button 
                   disabled
                   className="w-full py-5 bg-slate-200 text-slate-400 font-black text-sm uppercase tracking-widest rounded-2xl cursor-not-allowed"
@@ -1482,6 +1500,29 @@ const AdminDashboard = ({
     t.subject.toLowerCase().includes(ticketSearch.toLowerCase()) ||
     t.status.toLowerCase().includes(ticketSearch.toLowerCase())
   );
+
+  const seedServices = async () => {
+    const initialServices = [
+      { id: 1001, name: "Instagram Followers [Real]", rate: "$0.50", min: 100, max: 10000, category: "Instagram Followers", description: "Real followers, high quality." },
+      { id: 1002, name: "Instagram Likes [Fast]", rate: "$0.10", min: 50, max: 5000, category: "Instagram Likes", description: "Fast delivery, no drop." },
+      { id: 1003, name: "YouTube Views [Non-Drop]", rate: "$2.50", min: 1000, max: 100000, category: "YouTube Views", description: "High retention views." },
+      { id: 1004, name: "TikTok Followers [Instant]", rate: "$0.80", min: 100, max: 20000, category: "TikTok Followers", description: "Instant start, worldwide." },
+      { id: 1005, name: "Facebook Page Likes", rate: "$1.20", min: 100, max: 10000, category: "Facebook Likes", description: "Real page likes." }
+    ];
+
+    try {
+      for (const service of initialServices) {
+        await setDoc(doc(db, 'services', service.id.toString()), {
+          ...service,
+          createdAt: serverTimestamp()
+        });
+      }
+      alert('Initial services seeded successfully!');
+    } catch (error) {
+      console.error("Error seeding services", error);
+      alert('Failed to seed services.');
+    }
+  };
 
   const handleAddService = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1602,6 +1643,12 @@ const AdminDashboard = ({
       <div className="flex flex-col md:flex-row items-center justify-between bg-white p-6 rounded-3xl shadow-xl gap-4">
         <h2 className="text-smm-text-dark font-black text-2xl uppercase tracking-tight">Admin Control Center</h2>
         <div className="flex flex-wrap gap-2">
+          <button 
+            onClick={seedServices}
+            className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-500 text-white hover:bg-emerald-600 transition-all uppercase tracking-widest"
+          >
+            Seed Services
+          </button>
           <button 
             onClick={() => setActiveTab('dashboard')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
@@ -2154,7 +2201,7 @@ const LoginPanel = ({ onLogin, showToast }: { onLogin: () => void, showToast: (m
             </svg>
           </div>
           <h1 className="text-smm-text-dark font-black text-3xl tracking-tighter uppercase">LOMBARDI SMM</h1>
-          <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mt-1">v4.0 - CUSTOM PROJECT CONNECTED</p>
+          <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mt-1">v4.1 - ENHANCED AUTH FLOW</p>
           <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-2">{isRegistering ? 'Create an account' : 'Welcome back'}</p>
         </div>
 
@@ -2284,7 +2331,10 @@ export default function App() {
   const [users, setUsers] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+
+  const [paypalError, setPaypalError] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -2292,39 +2342,60 @@ export default function App() {
   };
 
   useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error("Global error caught:", event.error);
+      showToast(`System Error: ${event.message}`, "error");
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  useEffect(() => {
+    console.log("Initializing Auth Listener...");
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("Auth state changed. User:", user ? user.email : "None");
       try {
         if (user) {
-          console.log("User logged in:", user.uid);
+          setUid(user.uid);
           
+          // Set initial username from auth object immediately
+          const initialUsername = user.displayName || user.email?.split('@')[0] || 'User';
+          setUsername(initialUsername);
+          
+          // Immediate admin check for UI responsiveness
+          const isUserAdmin = (user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'shaikhmubasshir76@gmail.com');
+          if (isUserAdmin) setIsAdmin(true);
+
           // Check if user exists in Firestore, if not create
           const userDocRef = doc(db, 'users', user.uid);
+          console.log("Fetching user profile for:", user.uid);
           const userDoc = await getDoc(userDocRef);
           
             if (!userDoc.exists()) {
-            console.log("Creating new user profile...");
-            const newUser = {
-              uid: user.uid,
-              email: user.email,
-              username: user.displayName || user.email?.split('@')[0] || 'User',
-              role: user.email === 'shaikhmubasshir875@gmail.com' ? 'admin' : 'user',
-              balance: 0,
-              totalSpent: 0,
-              createdAt: Timestamp.now()
-            };
-            await setDoc(userDocRef, newUser);
-            setIsAdmin(newUser.role === 'admin');
-            setUsername(newUser.username);
-            setBalance('0.00');
-            setTotalSpent('0.00');
-            showToast(`Welcome to Lombardi SMM, ${newUser.username}!`, 'success');
-          } else {
+              console.log("Creating new user profile...");
+              const newUser = {
+                uid: user.uid,
+                email: user.email,
+                username: user.displayName || user.email?.split('@')[0] || 'User',
+                role: (user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'shaikhmubasshir76@gmail.com') ? 'admin' : 'user',
+                balance: 0,
+                totalSpent: 0,
+                createdAt: Timestamp.now()
+              };
+              await setDoc(userDocRef, newUser);
+              setIsAdmin(newUser.role === 'admin');
+              setUsername(newUser.username);
+              setBalance('0.0000');
+              setTotalSpent('0.0000');
+              showToast(`Welcome to Lombardi SMM, ${newUser.username}!`, 'success');
+            } else {
             console.log("User profile found.");
             const userData = userDoc.data();
             
             // Ensure admin role is set if email matches
             let role = userData.role;
-            if (user.email === 'shaikhmubasshir875@gmail.com' && role !== 'admin') {
+            if ((user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'shaikhmubasshir76@gmail.com') && role !== 'admin') {
+              console.log("Updating role to admin...");
               role = 'admin';
               await updateDoc(userDocRef, { role: 'admin' });
             }
@@ -2339,20 +2410,22 @@ export default function App() {
             }
             
             setUsername(currentUsername);
-            setBalance(userData.balance.toFixed(4));
-            setTotalSpent((userData.totalSpent || 0).toFixed(4));
+            setBalance(typeof userData.balance === 'number' ? userData.balance.toFixed(4) : '0.0000');
+            setTotalSpent(typeof userData.totalSpent === 'number' ? userData.totalSpent.toFixed(4) : '0.0000');
             setMemberSince(userData.createdAt instanceof Timestamp ? userData.createdAt.toDate().toLocaleDateString() : 'N/A');
           }
 
-          setUid(user.uid);
           setIsLoggedIn(true);
+          setIsProfileLoaded(true);
         } else {
+          console.log("No user session found.");
           setIsLoggedIn(false);
           setIsAdmin(false);
           setUid(null);
           setUsername('Guest');
-          setBalance('0.00');
-          setTotalSpent('0.00');
+          setBalance('0.0000');
+          setTotalSpent('0.0000');
+          setIsProfileLoaded(false);
         }
       } catch (error: any) {
         console.error("Auth state change error", error);
@@ -2361,22 +2434,45 @@ export default function App() {
           msg = "Permission denied. Your account might be restricted.";
         }
         showToast(msg, 'error');
+        // If we have a user but profile fetch failed, we might still want to show the app
+        if (user) {
+          setIsLoggedIn(true);
+          setIsProfileLoaded(true);
+          // Username was already set to initialUsername above
+        }
       } finally {
         setIsAuthReady(true);
       }
     });
 
-    return () => unsubscribe();
+    // Safety timeout for loading state
+    const timeout = setTimeout(() => {
+      setIsAuthReady(current => {
+        if (!current) {
+          console.warn("Auth initialization timed out. Forcing ready state.");
+          return true;
+        }
+        return current;
+      });
+    }, 10000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn || !isProfileLoaded) return;
 
     // Real-time services
     const servicesUnsubscribe = onSnapshot(collection(db, 'services'), (snapshot) => {
       const servicesList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setServices(servicesList);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'services'));
+    }, (error) => {
+      console.error("Services snapshot error", error);
+      showToast("Failed to load services. Please check your connection.", "error");
+    });
 
     // Real-time orders (if admin see all, if user see only own)
     const ordersQuery = isAdmin 
@@ -2386,7 +2482,10 @@ export default function App() {
     const ordersUnsubscribe = onSnapshot(ordersQuery, (snapshot) => {
       const ordersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setOrders(ordersList);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'orders'));
+    }, (error) => {
+      console.error("Orders snapshot error", error);
+      showToast("Failed to load orders.", "error");
+    });
 
     // Real-time tickets
     const ticketsQuery = isAdmin
@@ -2396,7 +2495,10 @@ export default function App() {
     const ticketsUnsubscribe = onSnapshot(ticketsQuery, (snapshot) => {
       const ticketsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setTickets(ticketsList);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'tickets'));
+    }, (error) => {
+      console.error("Tickets snapshot error", error);
+      showToast("Failed to load tickets.", "error");
+    });
 
     // Real-time refills
     const refillsQuery = isAdmin
@@ -2406,7 +2508,10 @@ export default function App() {
     const refillsUnsubscribe = onSnapshot(refillsQuery, (snapshot) => {
       const refillsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setRefills(refillsList);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'refills'));
+    }, (error) => {
+      console.error("Refills snapshot error", error);
+      showToast("Failed to load refills.", "error");
+    });
 
     // Real-time users (admin only)
     let usersUnsubscribe = () => {};
@@ -2414,25 +2519,34 @@ export default function App() {
       usersUnsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
         const usersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
         setUsers(usersList);
-      }, (error) => handleFirestoreError(error, OperationType.LIST, 'users'));
+      }, (error) => {
+        console.error("Users snapshot error", error);
+        showToast("Failed to load users list.", "error");
+      });
     }
 
     // Real-time balance and totalSpent update
     const userUnsubscribe = onSnapshot(doc(db, 'users', uid!), (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        setBalance(data.balance.toFixed(4));
-        setTotalSpent((data.totalSpent || 0).toFixed(4));
+        setBalance(typeof data.balance === 'number' ? data.balance.toFixed(4) : '0.0000');
+        setTotalSpent(typeof data.totalSpent === 'number' ? data.totalSpent.toFixed(4) : '0.0000');
         if (data.username) setUsername(data.username);
       }
-    }, (error) => handleFirestoreError(error, OperationType.GET, `users/${uid}`));
+    }, (error) => {
+      console.error("User profile snapshot error", error);
+      showToast("Failed to sync profile data.", "error");
+    });
 
     // Real-time transactions
     const transactionsQuery = query(collection(db, 'transactions'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
     const transactionsUnsubscribe = onSnapshot(transactionsQuery, (snapshot) => {
       const transactionsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setTransactions(transactionsList);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'transactions'));
+    }, (error) => {
+      console.error("Transactions snapshot error", error);
+      showToast("Failed to load transactions.", "error");
+    });
 
     return () => {
       servicesUnsubscribe();
@@ -2498,7 +2612,7 @@ export default function App() {
       case 'tickets': return <Tickets tickets={tickets} uid={uid!} />;
       case 'subscriptions': return <Subscriptions />;
       case 'refill': return <Refill refills={refills} />;
-      case 'add-funds': return <AddFunds uid={uid!} showToast={showToast} />;
+      case 'add-funds': return <AddFunds uid={uid!} showToast={showToast} paypalError={paypalError} />;
       case 'transactions': return <Transactions transactions={transactions} />;
       case 'profile': return <Profile username={username} uid={uid!} balance={balance} totalSpent={totalSpent} memberSince={memberSince} />;
       case 'services': return <Services services={services} />;
@@ -2518,7 +2632,13 @@ export default function App() {
   };
 
   return (
-    <PayPalScriptProvider options={{ "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "test" }}>
+    <PayPalScriptProvider 
+      options={{ "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "test" }}
+      onError={(err) => {
+        console.error("PayPal SDK failed to load", err);
+        setPaypalError(true);
+      }}
+    >
       <div className="min-h-screen bg-smm-bg text-white font-sans">
       <Sidebar 
         activePage={activePage} 

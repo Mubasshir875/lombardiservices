@@ -12,10 +12,19 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    function isAdmin() {
+    function isSuperAdmin() {
       return isAuthenticated() && 
-        (request.auth.token.email == "shaikhmubasshir875@gmail.com" ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+        ('email' in request.auth.token && (
+          request.auth.token.email == "shaikhmubasshir875@gmail.com" ||
+          request.auth.token.email == "shaikhmubasshir76@gmail.com"
+        ));
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
     }
 
     function hasOnlyAllowedFields(fields) {
@@ -66,20 +75,20 @@ service cloud.firestore {
 
     // Users Collection
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isSuperAdmin();
       allow create: if isAuthenticated() && 
                       isValidUser(request.resource.data) && 
-                      (isOwner(userId) && request.resource.data.role == 'user' || isAdmin());
+                      (isOwner(userId) || isSuperAdmin());
       allow update: if isAuthenticated() && 
                       isValidUser(request.resource.data) && 
                       ((isOwner(userId) && 
                         request.resource.data.role == resource.data.role && 
-                        request.resource.data.uid == resource.data.uid) || isAdmin());
+                        request.resource.data.uid == resource.data.uid) || isSuperAdmin());
     }
 
     // Services Collection
     match /services/{serviceId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -111,6 +120,13 @@ service cloud.firestore {
                       request.resource.data.uid == request.auth.uid;
       allow update: if isAdmin();
       allow delete: if isAdmin();
+    }
+
+    // Refills Collection
+    match /refills/{refillId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
 
     // Test Connection
