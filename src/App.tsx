@@ -6,6 +6,7 @@
 import { motion, AnimatePresence } from "motion/react";
 import React, { useState, useEffect, useCallback } from "react";
 import { 
+  LogOut,
   ShoppingCart, 
   ListOrdered, 
   Ticket as TicketIcon, 
@@ -57,6 +58,7 @@ import {
   Database,
   Home
 } from "lucide-react";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { seedServices } from "./services/bulkServices";
 import { 
   auth, 
@@ -1243,7 +1245,7 @@ const AddFunds = ({ uid, showToast }: { uid: string, showToast: (m: string, t: '
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handlePayment = async () => {
+  const handleCryptoPayment = async () => {
     if (!amount || parseFloat(amount) < 5) {
       showToast('Minimum amount is $5', 'error');
       return;
@@ -1251,7 +1253,7 @@ const AddFunds = ({ uid, showToast }: { uid: string, showToast: (m: string, t: '
 
     setLoading(true);
     try {
-      // Simulate payment processing
+      // Simulate crypto payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const transactionId = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -1260,7 +1262,7 @@ const AddFunds = ({ uid, showToast }: { uid: string, showToast: (m: string, t: '
       await addDoc(collection(db, 'transactions'), {
         uid,
         amount: parseFloat(amount),
-        method,
+        method: 'crypto',
         status: 'Completed',
         id: transactionId,
         createdAt: serverTimestamp()
@@ -1276,13 +1278,46 @@ const AddFunds = ({ uid, showToast }: { uid: string, showToast: (m: string, t: '
         });
       }
 
-      showToast(`Successfully added $${amount} to your balance!`, 'success');
+      showToast(`Successfully added $${amount} to your balance via Crypto!`, 'success');
       setAmount('');
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'transactions');
       showToast('Payment failed. Please try again.', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onPayPalSuccess = async (details: any) => {
+    try {
+      const amountPaid = details.purchase_units[0].amount.value;
+      const transactionId = details.id;
+
+      // Add transaction record
+      await addDoc(collection(db, 'transactions'), {
+        uid,
+        amount: parseFloat(amountPaid),
+        method: 'paypal',
+        status: 'Completed',
+        id: transactionId,
+        createdAt: serverTimestamp()
+      });
+
+      // Update user balance
+      const userRef = doc(db, 'users', uid);
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        const currentBalance = userDoc.data().balance || 0;
+        await updateDoc(userRef, {
+          balance: currentBalance + parseFloat(amountPaid)
+        });
+      }
+
+      showToast(`Successfully added $${amountPaid} to your balance via PayPal!`, 'success');
+      setAmount('');
+    } catch (error) {
+      console.error("PayPal processing error", error);
+      showToast('Failed to update balance. Please contact support.', 'error');
     }
   };
 
@@ -1328,20 +1363,58 @@ const AddFunds = ({ uid, showToast }: { uid: string, showToast: (m: string, t: '
             <p className="text-[10px] text-slate-400 mt-2 ml-1 font-bold uppercase tracking-widest">Minimum deposit: $5.00</p>
           </div>
 
-          <button 
-            onClick={handlePayment}
-            disabled={loading}
-            className="w-full py-5 bg-smm-sidebar text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <Wallet size={20} />
-                Pay with {method === 'paypal' ? 'PayPal' : 'Crypto'}
-              </>
-            )}
-          </button>
+          {method === 'paypal' ? (
+            <div className="mt-4">
+              {(!amount || parseFloat(amount) < 5) ? (
+                <button 
+                  disabled
+                  className="w-full py-5 bg-slate-200 text-slate-400 font-black text-sm uppercase tracking-widest rounded-2xl cursor-not-allowed"
+                >
+                  Enter amount to pay with PayPal
+                </button>
+              ) : (
+                <PayPalButtons 
+                  style={{ layout: "vertical", shape: "rect", label: "pay" }}
+                  createOrder={(data, actions) => {
+                    return actions.order.create({
+                      intent: "CAPTURE",
+                      purchase_units: [
+                        {
+                          amount: {
+                            currency_code: "USD",
+                            value: amount,
+                          },
+                        },
+                      ],
+                    });
+                  }}
+                  onApprove={async (data, actions) => {
+                    const details = await actions.order?.capture();
+                    onPayPalSuccess(details);
+                  }}
+                  onError={(err) => {
+                    console.error("PayPal Error", err);
+                    showToast("PayPal checkout failed. Please try again.", "error");
+                  }}
+                />
+              )}
+            </div>
+          ) : (
+            <button 
+              onClick={handleCryptoPayment}
+              disabled={loading}
+              className="w-full py-5 bg-smm-sidebar text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Bitcoin size={20} />
+                  Pay with Crypto
+                </>
+              )}
+            </button>
+          )}
 
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
             <h4 className="text-smm-text-dark font-black text-xs uppercase tracking-widest mb-3">Instructions:</h4>
@@ -2078,6 +2151,7 @@ const LoginPanel = ({ onLogin, showToast }: { onLogin: () => void, showToast: (m
             </svg>
           </div>
           <h1 className="text-smm-text-dark font-black text-3xl tracking-tighter uppercase">LOMBARDI SMM</h1>
+          <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mt-1">v2.0 - API KEY FIXED</p>
           <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-2">{isRegistering ? 'Create an account' : 'Welcome back'}</p>
         </div>
 
@@ -2404,7 +2478,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-smm-bg text-white font-sans">
+    <PayPalScriptProvider options={{ "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "test" }}>
+      <div className="min-h-screen bg-smm-bg text-white font-sans">
       <Sidebar 
         activePage={activePage} 
         setActivePage={setActivePage} 
@@ -2451,5 +2526,6 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    </PayPalScriptProvider>
   );
 }
