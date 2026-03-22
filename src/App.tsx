@@ -18,6 +18,7 @@ import {
   Layers, 
   Bell,
   ChevronDown,
+  AlertTriangle,
   User,
   BarChart3,
   CreditCard,
@@ -562,12 +563,12 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 bg-white rounded-3xl p-4 lg:p-8 shadow-2xl">
           <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3 lg:gap-4 mb-8">
-            <SocialIcon icon={<InstagramIcon size={20} />} color="#ec4899" onClick={() => setSelectedCategory('Instagram Followers')} />
-            <SocialIcon icon={<Music size={20} />} color="#10b981" onClick={() => setSelectedCategory('TikTok Followers')} />
-            <SocialIcon icon={<YoutubeIcon size={20} />} color="#ef4444" onClick={() => setSelectedCategory('YouTube Views')} />
-            <SocialIcon icon={<FacebookIcon size={20} />} color="#1d4ed8" onClick={() => setSelectedCategory('Facebook Likes')} />
-            <SocialIcon icon={<TwitterIcon size={20} />} color="#000000" onClick={() => setSelectedCategory('Twitter Followers')} />
-            <SocialIcon icon={<Send size={20} />} color="#38bdf8" onClick={() => setSelectedCategory('Telegram Services')} />
+            <SocialIcon icon={<InstagramIcon size={20} />} color="#ec4899" onClick={() => setSelectedCategory('Instagram Followers [Guaranteed♻️]')} />
+            <SocialIcon icon={<Music size={20} />} color="#10b981" onClick={() => setSelectedCategory('Tiktok Followers')} />
+            <SocialIcon icon={<YoutubeIcon size={20} />} color="#ef4444" onClick={() => setSelectedCategory('Real Ads YouTube Views ❤️‍🔥🔥')} />
+            <SocialIcon icon={<FacebookIcon size={20} />} color="#1d4ed8" onClick={() => setSelectedCategory('Facebook Page Likes+Followers')} />
+            <SocialIcon icon={<TwitterIcon size={20} />} color="#000000" onClick={() => setSelectedCategory('🐥Twitter Follower')} />
+            <SocialIcon icon={<Send size={20} />} color="#38bdf8" onClick={() => setSelectedCategory('TELEGRAM MEMBERS [NON DROP]✅')} />
             <SocialIcon icon={<Menu size={20} />} color="#6366f1" onClick={() => setSelectedCategory('Other')} />
           </div>
 
@@ -583,7 +584,14 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
                   className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-smm-text-dark focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
                 />
               </div>
-              <button className="px-6 py-3.5 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  // Trigger search (already real-time, but good for UX)
+                  const input = document.querySelector('input[placeholder="Search services in this category..."]') as HTMLInputElement;
+                  if (input) input.focus();
+                }}
+                className="px-6 py-3.5 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2"
+              >
                 <Search size={16} />
                 Search
               </button>
@@ -614,12 +622,22 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
                   }}
                   value={selectedService?.id || ''}
                 >
-                  {filteredServices.map(s => (
-                    <option key={s.id} value={s.id}>{s.id} - {s.name} - {s.rate}</option>
-                  ))}
+                  {filteredServices.length > 0 ? (
+                    filteredServices.map(s => (
+                      <option key={s.id} value={s.id}>{s.id} - {s.name} - {s.rate}</option>
+                    ))
+                  ) : (
+                    <option disabled>No services found in this category</option>
+                  )}
                 </select>
                 <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
+              {services.length === 0 && (
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-xs font-bold uppercase tracking-tight flex items-center gap-3">
+                  <AlertTriangle size={18} />
+                  <span>No services found. If you are an admin, please go to Admin Panel &gt; Services and click "Seed Bulk Services".</span>
+                </div>
+              )}
             </div>
             {selectedService && (
               <div className="p-6 bg-blue-50/50 border border-blue-100 rounded-2xl">
@@ -797,6 +815,13 @@ const Tickets = ({ tickets, uid }: { tickets: any[], uid: string }) => {
   const [subcategory, setSubcategory] = useState('Speed Up');
   const [orderId, setOrderId] = useState('');
   const [message, setMessage] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredTickets = tickets.filter(t => 
+    t.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    t.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleSubmit = async () => {
     if (!message.trim()) return;
@@ -891,9 +916,23 @@ const Tickets = ({ tickets, uid }: { tickets: any[], uid: string }) => {
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input type="text" placeholder="Search" className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none" />
+            <input 
+              type="text" 
+              placeholder="Search tickets..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none" 
+            />
           </div>
-          <button className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"><Search size={18} /></button>
+          <button 
+            onClick={() => {
+              const input = document.querySelector('input[placeholder="Search tickets..."]') as HTMLInputElement;
+              if (input) input.focus();
+            }}
+            className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <Search size={18} />
+          </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -906,8 +945,8 @@ const Tickets = ({ tickets, uid }: { tickets: any[], uid: string }) => {
               </tr>
             </thead>
             <tbody className="text-sm font-medium text-smm-text-dark">
-              {tickets.length > 0 ? (
-                tickets.map((ticket, i) => (
+              {filteredTickets.length > 0 ? (
+                filteredTickets.map((ticket, i) => (
                   <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">{ticket.id}</td>
                     <td className="px-6 py-4">{ticket.subject}</td>
@@ -941,15 +980,21 @@ const Tickets = ({ tickets, uid }: { tickets: any[], uid: string }) => {
 const Subscriptions = () => {
   const tabs = ["All", "Pending", "Active", "Completed", "Canceled", "Expired"];
   const [activeTab, setActiveTab] = useState("All");
+  const [searchTerm, setSearchTerm] = useState('');
 
   const subscriptions = [
     { id: "58293", date: "2026-03-18 10:22:45", service: "4680 — Instagram Followers [Refill - 30Days ♻️]", link: "https://instagram.com/user", quantity: "100", posts: "0/10", status: "Active" },
     { id: "58112", date: "2026-03-15 14:10:12", service: "4569 — TikTok Followers [OPEN LIVE STREAM]", link: "https://tiktok.com/@user", quantity: "500", posts: "5/5", status: "Completed" },
   ];
 
-  const filteredSubscriptions = activeTab === "All" 
+  const filteredSubscriptions = (activeTab === "All" 
     ? subscriptions 
-    : subscriptions.filter(s => s.status === activeTab);
+    : subscriptions.filter(s => s.status === activeTab)
+  ).filter(s => 
+    s.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    s.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.link.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -1338,6 +1383,8 @@ const AdminDashboard = ({
 
   const [serviceSearch, setServiceSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [ticketSearch, setTicketSearch] = useState('');
 
   const filteredServices = services.filter(s => 
     s.name.toLowerCase().includes(serviceSearch.toLowerCase()) || 
@@ -1349,6 +1396,18 @@ const AdminDashboard = ({
     u.username?.toLowerCase().includes(userSearch.toLowerCase()) || 
     u.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
     u.id?.toLowerCase().includes(userSearch.toLowerCase())
+  );
+
+  const filteredOrders = orders.filter(o => 
+    o.id.toLowerCase().includes(orderSearch.toLowerCase()) || 
+    o.service.toLowerCase().includes(orderSearch.toLowerCase()) ||
+    o.status.toLowerCase().includes(orderSearch.toLowerCase())
+  );
+
+  const filteredTickets = tickets.filter(t => 
+    t.id.toLowerCase().includes(ticketSearch.toLowerCase()) || 
+    t.subject.toLowerCase().includes(ticketSearch.toLowerCase()) ||
+    t.status.toLowerCase().includes(ticketSearch.toLowerCase())
   );
 
   const handleAddService = async (e: React.FormEvent) => {
@@ -1623,15 +1682,26 @@ const AdminDashboard = ({
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <h3 className="text-smm-text-dark font-bold">Current Services ({filteredServices.length})</h3>
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                <input 
-                  type="text" 
-                  placeholder="Search services..." 
-                  value={serviceSearch}
-                  onChange={(e) => setServiceSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
-                />
+              <div className="flex items-center gap-2 w-full sm:max-w-xs">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Search services..." 
+                    value={serviceSearch}
+                    onChange={(e) => setServiceSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                  />
+                </div>
+                <button 
+                  onClick={() => {
+                    const input = document.querySelector('input[placeholder="Search services..."]') as HTMLInputElement;
+                    if (input) input.focus();
+                  }}
+                  className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  <Search size={18} />
+                </button>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -1697,8 +1767,29 @@ const AdminDashboard = ({
 
       {activeTab === 'orders' && (
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="p-6 border-b border-slate-100">
-            <h3 className="text-smm-text-dark font-bold mb-4">Manage Orders</h3>
+          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h3 className="text-smm-text-dark font-bold">Manage Orders ({filteredOrders.length})</h3>
+            <div className="flex items-center gap-2 w-full sm:max-w-xs">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search orders..." 
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                />
+              </div>
+              <button 
+                onClick={() => {
+                  const input = document.querySelector('input[placeholder="Search orders..."]') as HTMLInputElement;
+                  if (input) input.focus();
+                }}
+                className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <Search size={18} />
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -1712,29 +1803,35 @@ const AdminDashboard = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
-                {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4">{o.id}</td>
-                    <td className="px-6 py-4 truncate max-w-[200px]">{o.service}</td>
-                    <td className="px-6 py-4 font-bold text-blue-600">${o.charge}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold ${
-                        o.status === 'Completed' ? 'bg-emerald-100 text-emerald-600' : 
-                        o.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
-                        o.status === 'Canceled' ? 'bg-red-100 text-red-600' :
-                        'bg-blue-100 text-blue-600'
-                      }`}>
-                        {o.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right flex justify-end gap-2">
-                      <button onClick={() => updateOrderStatus(o.id, 'Completed')} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Complete"><CheckCircle2 size={16} /></button>
-                      <button onClick={() => updateOrderStatus(o.id, 'Pending')} className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg" title="Pending"><Clock size={16} /></button>
-                      <button onClick={() => updateOrderStatus(o.id, 'Canceled')} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Cancel"><XCircle size={16} /></button>
-                      <button onClick={() => handleDeleteOrder(o.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="Delete"><Trash2 size={16} /></button>
-                    </td>
+                {filteredOrders.length > 0 ? (
+                  filteredOrders.map((o) => (
+                    <tr key={o.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">{o.id}</td>
+                      <td className="px-6 py-4 truncate max-w-[200px]">{o.service}</td>
+                      <td className="px-6 py-4 font-bold text-blue-600">${o.charge}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${
+                          o.status === 'Completed' ? 'bg-emerald-100 text-emerald-600' : 
+                          o.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
+                          o.status === 'Canceled' ? 'bg-red-100 text-red-600' :
+                          'bg-blue-100 text-blue-600'
+                        }`}>
+                          {o.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
+                        <button onClick={() => updateOrderStatus(o.id, 'Completed')} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Complete"><CheckCircle2 size={16} /></button>
+                        <button onClick={() => updateOrderStatus(o.id, 'Pending')} className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg" title="Pending"><Clock size={16} /></button>
+                        <button onClick={() => updateOrderStatus(o.id, 'Canceled')} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Cancel"><XCircle size={16} /></button>
+                        <button onClick={() => handleDeleteOrder(o.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="Delete"><Trash2 size={16} /></button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">No orders found</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -1743,8 +1840,29 @@ const AdminDashboard = ({
 
       {activeTab === 'tickets' && (
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="p-6 border-b border-slate-100">
-            <h3 className="text-smm-text-dark font-bold mb-4">Manage Tickets</h3>
+          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h3 className="text-smm-text-dark font-bold">Manage Tickets ({filteredTickets.length})</h3>
+            <div className="flex items-center gap-2 w-full sm:max-w-xs">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search tickets..." 
+                  value={ticketSearch}
+                  onChange={(e) => setTicketSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                />
+              </div>
+              <button 
+                onClick={() => {
+                  const input = document.querySelector('input[placeholder="Search tickets..."]') as HTMLInputElement;
+                  if (input) input.focus();
+                }}
+                className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <Search size={18} />
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -1757,7 +1875,8 @@ const AdminDashboard = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
-                {tickets.map((t) => (
+                {filteredTickets.length > 0 ? (
+                  filteredTickets.map((t) => (
                   <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">{t.id}</td>
                     <td className="px-6 py-4">{t.subject}</td>
@@ -1774,8 +1893,13 @@ const AdminDashboard = ({
                       <button onClick={() => handleDeleteTicket(t.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="Delete"><Trash2 size={16} /></button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-400 italic">No tickets found</td>
+                </tr>
+              )}
+            </tbody>
             </table>
           </div>
         </div>
@@ -1831,15 +1955,26 @@ const AdminDashboard = ({
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
             <h3 className="text-smm-text-dark font-bold">Manage Users ({filteredUsers.length})</h3>
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input 
-                type="text" 
-                placeholder="Search users..." 
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
-              />
+            <div className="flex items-center gap-2 w-full sm:max-w-xs">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search users..." 
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                />
+              </div>
+              <button 
+                onClick={() => {
+                  const input = document.querySelector('input[placeholder="Search users..."]') as HTMLInputElement;
+                  if (input) input.focus();
+                }}
+                className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <Search size={18} />
+              </button>
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -1894,7 +2029,7 @@ const AdminDashboard = ({
   );
 };
 
-const LoginPanel = ({ onLogin }: { onLogin: () => void }) => {
+const LoginPanel = ({ onLogin, showToast }: { onLogin: () => void, showToast: (msg: string, type: 'success' | 'error') => void }) => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -1920,8 +2055,9 @@ const LoginPanel = ({ onLogin }: { onLogin: () => void }) => {
       if (error.code === 'auth/email-already-in-use') msg = "Email already in use.";
       if (error.code === 'auth/weak-password') msg = "Password should be at least 6 characters.";
       if (error.code === 'auth/invalid-email') msg = "Invalid email address.";
-      if (error.code === 'auth/operation-not-allowed') msg = "Email/Password login is not enabled in Firebase Console.";
-      alert(msg);
+      if (error.code === 'auth/operation-not-allowed') msg = "Email/Password login is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.";
+      if (error.code === 'auth/unauthorized-domain') msg = "This domain is not authorized for Firebase Auth. Please add it to 'Authorized domains' in Firebase Console.";
+      showToast(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -2005,7 +2141,10 @@ const LoginPanel = ({ onLogin }: { onLogin: () => void }) => {
               onLogin();
             } catch (error: any) {
               console.error("Google login failed", error);
-              alert(`Google login failed: ${error.code || error.message}. Please check your Firebase Console settings.`);
+              let msg = `Google login failed: ${error.code || error.message}`;
+              if (error.code === 'auth/popup-blocked') msg = "Popup blocked. Please allow popups for this site.";
+              if (error.code === 'auth/unauthorized-domain') msg = "This domain is not authorized for Firebase Auth. Please add it to 'Authorized domains' in Firebase Console.";
+              showToast(msg, 'error');
             } finally {
               setLoading(false);
             }
@@ -2074,14 +2213,14 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setIsLoggedIn(true);
-        setUid(user.uid);
-        setUsername(user.displayName || user.email?.split('@')[0] || 'User');
-        
-        // Check if user exists in Firestore, if not create
-        const userDocRef = doc(db, 'users', user.uid);
-        try {
+      try {
+        if (user) {
+          setIsLoggedIn(true);
+          setUid(user.uid);
+          setUsername(user.displayName || user.email?.split('@')[0] || 'User');
+          
+          // Check if user exists in Firestore, if not create
+          const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
           if (!userDoc.exists()) {
             const newUser = {
@@ -2104,18 +2243,22 @@ export default function App() {
             setTotalSpent((userData.totalSpent || 0).toFixed(4));
             setMemberSince(userData.createdAt instanceof Timestamp ? userData.createdAt.toDate().toLocaleDateString() : 'N/A');
           }
-        } catch (error) {
-          handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+        } else {
+          setIsLoggedIn(false);
+          setIsAdmin(false);
+          setUid(null);
+          setUsername('Guest');
+          setBalance('0.00');
+          setTotalSpent('0.00');
         }
-      } else {
-        setIsLoggedIn(false);
-        setIsAdmin(false);
-        setUid(null);
-        setUsername('Guest');
-        setBalance('0.00');
-        setTotalSpent('0.00');
+      } catch (error: any) {
+        console.error("Auth state change error", error);
+        if (error.message?.includes('insufficient permissions')) {
+          showToast("Permission denied. Your account might be restricted.", 'error');
+        }
+      } finally {
+        setIsAuthReady(true);
       }
-      setIsAuthReady(true);
     });
 
     return () => unsubscribe();
@@ -2218,7 +2361,20 @@ export default function App() {
   }
 
   if (!isLoggedIn) {
-    return <LoginPanel onLogin={handleLogin} />;
+    return (
+      <div className="min-h-screen bg-smm-bg">
+        <LoginPanel onLogin={handleLogin} showToast={showToast} />
+        <AnimatePresence>
+          {toast && (
+            <Toast 
+              message={toast.message} 
+              type={toast.type} 
+              onClose={() => setToast(null)} 
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    );
   }
 
   const renderPage = () => {
