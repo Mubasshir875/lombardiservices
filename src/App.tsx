@@ -2151,7 +2151,7 @@ const LoginPanel = ({ onLogin, showToast }: { onLogin: () => void, showToast: (m
             </svg>
           </div>
           <h1 className="text-smm-text-dark font-black text-3xl tracking-tighter uppercase">LOMBARDI SMM</h1>
-          <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mt-1">v2.0 - API KEY FIXED</p>
+          <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mt-1">v4.0 - CUSTOM PROJECT CONNECTED</p>
           <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-2">{isRegistering ? 'Create an account' : 'Welcome back'}</p>
         </div>
 
@@ -2289,14 +2289,16 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
-          setIsLoggedIn(true);
+          console.log("User logged in:", user.uid);
           setUid(user.uid);
-          setUsername(user.displayName || user.email?.split('@')[0] || 'User');
+          setIsLoggedIn(true);
           
           // Check if user exists in Firestore, if not create
           const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
+          
           if (!userDoc.exists()) {
+            console.log("Creating new user profile...");
             const newUser = {
               uid: user.uid,
               email: user.email,
@@ -2308,11 +2310,15 @@ export default function App() {
             };
             await setDoc(userDocRef, newUser);
             setIsAdmin(newUser.role === 'admin');
+            setUsername(newUser.username);
             setBalance('0.00');
             setTotalSpent('0.00');
+            showToast(`Welcome to Lombardi SMM, ${newUser.username}!`, 'success');
           } else {
+            console.log("User profile found.");
             const userData = userDoc.data();
             setIsAdmin(userData.role === 'admin');
+            setUsername(userData.username || 'User');
             setBalance(userData.balance.toFixed(4));
             setTotalSpent((userData.totalSpent || 0).toFixed(4));
             setMemberSince(userData.createdAt instanceof Timestamp ? userData.createdAt.toDate().toLocaleDateString() : 'N/A');
@@ -2327,9 +2333,11 @@ export default function App() {
         }
       } catch (error: any) {
         console.error("Auth state change error", error);
+        let msg = "Something went wrong during login. Please refresh.";
         if (error.message?.includes('insufficient permissions')) {
-          showToast("Permission denied. Your account might be restricted.", 'error');
+          msg = "Permission denied. Your account might be restricted.";
         }
+        showToast(msg, 'error');
       } finally {
         setIsAuthReady(true);
       }
