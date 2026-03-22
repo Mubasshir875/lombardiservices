@@ -2003,9 +2003,9 @@ const LoginPanel = ({ onLogin }: { onLogin: () => void }) => {
             try {
               await loginWithGoogle();
               onLogin();
-            } catch (error) {
+            } catch (error: any) {
               console.error("Google login failed", error);
-              alert("Google login failed. Please try again.");
+              alert(`Google login failed: ${error.code || error.message}. Please check your Firebase Console settings.`);
             } finally {
               setLoading(false);
             }
