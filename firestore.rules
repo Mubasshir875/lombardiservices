@@ -1,132 +1,86 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
+    
     function isAuthenticated() {
       return request.auth != null;
     }
-
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
+    
     function isSuperAdmin() {
       return isAuthenticated() && 
-        ('email' in request.auth.token && (
-          request.auth.token.email == "shaikhmubasshir875@gmail.com" ||
-          request.auth.token.email == "shaikhmubasshir76@gmail.com"
-        ));
+        (request.auth.token.email == "shaikhmubasshir76@gmail.com" ||
+         request.auth.token.email == "shaikhmubasshir875@gmail.com" ||
+         request.auth.token.email == "Lombardiraffaelo6@gmail.com" ||
+         (request.auth.token.firebase.identities.keys().hasAny(['email']) && 
+          (request.auth.token.firebase.identities.email[0] == "shaikhmubasshir76@gmail.com" ||
+           request.auth.token.firebase.identities.email[0] == "shaikhmubasshir875@gmail.com" ||
+           request.auth.token.firebase.identities.email[0] == "Lombardiraffaelo6@gmail.com")));
     }
 
     function isAdmin() {
       return isSuperAdmin() || (
+        isAuthenticated() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
     }
 
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
+    // Global Admin - Full access to everything
+    match /{document=**} {
+      allow read, write: if isSuperAdmin();
     }
 
-    function hasRequiredFields(fields) {
-      return request.resource.data.keys().hasAll(fields);
-    }
-
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
-    function isValidUser(data) {
-      return data.uid is string &&
-             data.email is string &&
-             data.username is string &&
-             data.role in ['admin', 'user'] &&
-             data.balance is number &&
-             data.totalSpent is number;
-    }
-
-    function isValidOrder(data) {
-      return data.uid is string &&
-             data.serviceId is string &&
-             data.quantity is number &&
-             data.charge is number &&
-             data.status in ['Pending', 'In Progress', 'Completed', 'Cancelled'];
-    }
-
-    function isValidTicket(data) {
-      return data.uid is string &&
-             data.subject is string &&
-             data.message is string &&
-             data.status in ['Open', 'Closed'];
-    }
-
-    function isValidTransaction(data) {
-      return data.uid is string &&
-             data.amount is number &&
-             data.method in ['paypal', 'crypto'] &&
-             data.status in ['Completed', 'Pending', 'Failed'];
-    }
-
-    // ===============================================================
-    // Collection Rules
-    // ===============================================================
-
-    // Users Collection
+    // Users - Owner can read/write their own profile
     match /users/{userId} {
-      allow read: if isOwner(userId) || isSuperAdmin();
-      allow create: if isAuthenticated() && 
-                      isValidUser(request.resource.data) && 
-                      (isOwner(userId) || isSuperAdmin());
-      allow update: if isAuthenticated() && 
-                      isValidUser(request.resource.data) && 
-                      ((isOwner(userId) && 
-                        request.resource.data.role == resource.data.role && 
-                        request.resource.data.uid == resource.data.uid) || isSuperAdmin());
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isSuperAdmin());
     }
 
-    // Services Collection
+    // Services - Publicly readable, admin writable
     match /services/{serviceId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Orders Collection
+    // Orders - Owner can read/create
     match /orders/{orderId} {
-      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuthenticated() && 
-                      isValidOrder(request.resource.data) && 
-                      request.resource.data.uid == request.auth.uid;
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    // Tickets Collection
-    match /tickets/{ticketId} {
-      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuthenticated() && 
-                      isValidTicket(request.resource.data) && 
-                      request.resource.data.uid == request.auth.uid;
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    // Transactions Collection
-    match /transactions/{transactionId} {
-      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuthenticated() && 
-                      isValidTransaction(request.resource.data) && 
-                      request.resource.data.uid == request.auth.uid;
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    // Refills Collection
-    match /refills/{refillId} {
-      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.uid == request.auth.uid);
       allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
       allow update, delete: if isAdmin();
+    }
+
+    // Tickets - Owner can read/create
+    match /tickets/{ticketId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Transactions - Owner can read/create
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Refills - Owner can read/create
+    match /refills/{refillId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Subscriptions - Owner can read/create
+    match /subscriptions/{subId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Updates - Publicly readable, admin writable
+    match /updates/{updateId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Test Connection

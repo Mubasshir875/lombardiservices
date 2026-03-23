@@ -1,5 +1,5 @@
 
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { db } from "../firebase";
 
 export const bulkServices = [
@@ -187,30 +187,27 @@ export const bulkServices = [
 ];
 
 export const seedServices = async () => {
-  console.log("Starting seedServices...");
+  console.log("Starting seedServices with batch...");
   let count = 0;
-  let errors = 0;
   
-  for (const service of bulkServices) {
-    const serviceId = service.id.toString();
-    try {
-      await setDoc(doc(db, 'services', serviceId), {
+  try {
+    const batch = writeBatch(db);
+    
+    for (const service of bulkServices) {
+      const serviceId = service.id.toString();
+      const serviceRef = doc(db, 'services', serviceId);
+      batch.set(serviceRef, {
         ...service,
         createdAt: serverTimestamp()
       });
       count++;
-      if (count % 10 === 0) {
-        console.log(`Seeded ${count} services...`);
-      }
-    } catch (error) {
-      errors++;
-      console.error(`Error seeding service ${serviceId}:`, error);
     }
-  }
-  
-  if (errors > 0) {
-    alert(`Seeding complete with ${errors} errors. ${count} services added/updated.`);
-  } else {
-    alert(`Successfully seeded ${count} services!`);
+    
+    await batch.commit();
+    console.log(`Successfully seeded ${count} services in a single batch!`);
+    return { success: true, count };
+  } catch (error) {
+    console.error("Error seeding services with batch:", error);
+    return { success: false, count, error: error instanceof Error ? error.message : String(error) };
   }
 };

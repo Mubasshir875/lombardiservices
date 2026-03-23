@@ -57,9 +57,9 @@ import {
   LogIn,
   X,
   Database,
-  Home
+  Home,
+  ExternalLink
 } from "lucide-react";
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { seedServices as seedBulkServices } from "./services/bulkServices";
 import { 
   auth, 
@@ -84,6 +84,7 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
+  getDocFromServer,
   query, 
   where, 
   orderBy, 
@@ -278,7 +279,7 @@ const Services = ({ services }: { services: Service[] }) => {
   );
 };
 
-const MassOrder = ({ services, uid, balance, totalSpent }: { services: Service[], uid: string, balance: string, totalSpent: string }) => {
+const MassOrder = ({ services, uid, balance, totalSpent, showToast }: { services: Service[], uid: string, balance: string, totalSpent: string, showToast: (m: string, t: 'success' | 'error') => void }) => {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -314,10 +315,12 @@ const MassOrder = ({ services, uid, balance, totalSpent }: { services: Service[]
     }
 
     if (parseFloat(balance) < totalCharge) {
-      alert(`Insufficient balance. Total charge for these orders is $${totalCharge.toFixed(2)}`);
+      showToast(`Insufficient balance. Total charge for these orders is $${totalCharge.toFixed(2)}`, 'error');
       setLoading(false);
       return;
     }
+
+    console.log("Placing mass orders:", { count: ordersToPlace.length, totalCharge, uid, balance });
 
     try {
       // Place orders
@@ -332,7 +335,7 @@ const MassOrder = ({ services, uid, balance, totalSpent }: { services: Service[]
         totalSpent: parseFloat((parseFloat(totalSpent) + totalCharge).toFixed(4))
       });
 
-      alert(`${ordersToPlace.length} orders placed successfully!`);
+      showToast(`${ordersToPlace.length} orders placed successfully!`, 'success');
       setText('');
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'orders/mass');
@@ -364,16 +367,14 @@ const MassOrder = ({ services, uid, balance, totalSpent }: { services: Service[]
   );
 };
 
-const Updates = () => {
-  const updates = [
-    { id: 4133, service: "Tiktok Followers [Speed : 30k/D] [High Quality] [Cancel Button] [Non Drop] [30Day Refill ♻️]", date: "2026-03-20", update: "Rate increased from $183.73 to $189.80" },
-    { id: 2970, service: "Threads Shares [Real] [Refill: No] [Max: 500] [Start Time: 0-3 Hours] [Speed: Up to 500/Day]", date: "2026-03-20", update: "Rate decreased from $3820.99 to $748.57" },
-    { id: 2967, service: "Threads Reshare [Refill: 30D] [Max: 5K] [Start Time: 0-3 Hours] [Speed: Up to 5K/Day]", date: "2026-03-20", update: "Rate increased from $1247.41 to $1247.62" },
-    { id: 2967, service: "Threads Reshare [Refill: 30D] [Max: 5K] [Start Time: 0-3 Hours] [Speed: Up to 5K/Day]", date: "2026-03-20", update: "Service enabled" },
-    { id: 2962, service: "Threads Likes [Refill: 30D] [Max: 50K] [Start Time: 0-3 Hours] [Speed: Up to 50K/Day]", date: "2026-03-20", update: "Service enabled" },
-    { id: 2966, service: "Threads Followers [Refill: 30D] [Max: 10K] [Start Time: 0-3 Hours] [Speed: Up to 10K/Day]", date: "2026-03-20", update: "Service enabled" },
-    { id: 3343, service: "Instagram Followers [R365♻️] [Speed - 100K+/Day🚀🔥] [Quality - Good ⭐] [Refill Button Working]", date: "2026-03-20", update: "Rate increased from $94.06 to $94.35" },
-  ];
+const Updates = ({ updates }: { updates: any[] }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const filteredUpdates = updates.filter(u => 
+    u.service?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    u.id?.toString().includes(searchTerm) ||
+    u.update?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -382,9 +383,14 @@ const Updates = () => {
           <div className="bg-smm-sidebar text-white px-4 py-2 rounded-lg text-xs font-bold">All</div>
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input type="text" placeholder="Search" className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none" />
+            <input 
+              type="text" 
+              placeholder="Search Updates" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none" 
+            />
           </div>
-          <button className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"><Search size={18} /></button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -396,18 +402,26 @@ const Updates = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
-              {updates.map((u, i) => (
-                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-slate-200 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0">{u.id}</span>
-                      <span className="font-semibold">{u.service}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{u.date}</td>
-                  <td className="px-6 py-4">{u.update}</td>
+              {filteredUpdates.length > 0 ? (
+                filteredUpdates.map((u, i) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-slate-200 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0">{u.id}</span>
+                        <span className="font-semibold">{u.service}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {u.createdAt instanceof Timestamp ? u.createdAt.toDate().toLocaleDateString() : u.date || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4">{u.update}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="px-6 py-12 text-center text-slate-400 italic">No updates found</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -426,7 +440,7 @@ const SocialIcon = ({ icon, color, onClick }: { icon: React.ReactNode, color: st
   </div>
 );
 
-const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid, orders }: { setActivePage: (p: Page) => void, balance: string, totalSpent: string, services: Service[], username: string, uid: string, orders: any[] }) => {
+const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid, orders, showToast }: { setActivePage: (p: Page) => void, balance: string, totalSpent: string, services: Service[], username: string, uid: string, orders: any[], showToast: (m: string, t: 'success' | 'error') => void }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>(services[0]?.category || 'Instagram Followers');
   const [selectedService, setSelectedService] = useState<Service | null>(services.find(s => s.category === selectedCategory) || services[0] || null);
   const [link, setLink] = useState('');
@@ -451,20 +465,22 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
 
   const handleSubmit = async () => {
     if (!selectedService || !link || !quantity) {
-      alert('Please fill all fields');
+      showToast('Please fill all fields', 'error');
       return;
     }
     
     const qty = parseInt(quantity);
     const rate = parseFloat(selectedService.rate.replace('$', ''));
     const charge = parseFloat((rate * qty / 1000).toFixed(2));
+    
+    const orderId = Math.floor(10000000 + Math.random() * 90000000).toString();
+    console.log("Placing order:", { orderId, uid, serviceId: selectedService.id, charge, balance });
 
     if (parseFloat(balance) < charge) {
-      alert('Insufficient balance. Please add funds.');
+      showToast('Insufficient balance. Please add funds.', 'error');
       return;
     }
 
-    const orderId = Math.floor(10000000 + Math.random() * 90000000).toString();
     const path = 'orders';
     
     try {
@@ -681,9 +697,9 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
 
         <div className="lg:col-span-4">
           <div className="bg-white rounded-3xl p-8 shadow-2xl h-full">
-            <h3 className="text-smm-text-dark font-bold text-lg mb-4">What is SMM Panel?</h3>
+            <h3 className="text-smm-text-dark font-bold text-lg mb-4">Lombardi Services</h3>
             <p className="text-slate-600 text-sm leading-relaxed font-medium">
-              <span className="font-black">SMM Panel</span> is used to access Social Networks, and making use of it for profits. You can use the <span className="font-black">SMM Panel</span> to get your marketing move on to the next stage of developing plans for your product or services. The social media used includes Facebook, twitter, Instagram, YouTube, LinkedIn and more. With <span className="font-black">Lombardi Services</span> you can grow your business rapidly. Buy Best SMM Panel Services from us and grow your business. <span className="font-black">Lombardi Services</span> is the best and most reliable SMM panel in the market.
+              <span className="font-black">Lombardi Services</span> is used to access Social Networks, and making use of it for profits. You can use <span className="font-black">Lombardi Services</span> to get your marketing move on to the next stage of developing plans for your product or services. The social media used includes Facebook, twitter, Instagram, YouTube, LinkedIn and more. With <span className="font-black">Lombardi Services</span> you can grow your business rapidly. Buy Best SMM Panel Services from us and grow your business. <span className="font-black">Lombardi Services</span> is the best and most reliable service provider in the market.
             </p>
           </div>
         </div>
@@ -692,7 +708,7 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
   );
 };
 
-const Orders = ({ setActivePage, orders, uid }: { setActivePage: (p: Page) => void, orders: any[], uid: string }) => {
+const Orders = ({ setActivePage, orders, uid, showToast }: { setActivePage: (p: Page) => void, orders: any[], uid: string, showToast: (m: string, t: 'success' | 'error') => void }) => {
   const tabs = ["All", "Pending", "In progress", "Completed", "Partial", "Processing", "Canceled"];
   const [activeTab, setActiveTab] = useState("All");
 
@@ -702,11 +718,12 @@ const Orders = ({ setActivePage, orders, uid }: { setActivePage: (p: Page) => vo
 
   const handleRefill = async (order: any) => {
     if (order.status !== 'Completed') {
-      alert('Only completed orders can be refilled.');
+      showToast('Only completed orders can be refilled.', 'error');
       return;
     }
 
     const refillId = Math.floor(1000000 + Math.random() * 9000000).toString();
+    console.log("Submitting refill request:", { refillId, orderId: order.id, uid });
     const refillData = {
       id: refillId,
       uid: uid,
@@ -719,7 +736,7 @@ const Orders = ({ setActivePage, orders, uid }: { setActivePage: (p: Page) => vo
 
     try {
       await setDoc(doc(db, 'refills', refillId), refillData);
-      alert('Refill request submitted successfully!');
+      showToast('Refill request submitted successfully!', 'success');
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, `refills/${refillId}`);
     }
@@ -813,7 +830,7 @@ const Orders = ({ setActivePage, orders, uid }: { setActivePage: (p: Page) => vo
   );
 };
 
-const Tickets = ({ tickets, uid }: { tickets: any[], uid: string }) => {
+const Tickets = ({ tickets, uid, showToast }: { tickets: any[], uid: string, showToast: (m: string, t: 'success' | 'error') => void }) => {
   const [subject, setSubject] = useState('Auto Support [AI 🤖]');
   const [subcategory, setSubcategory] = useState('Speed Up');
   const [orderId, setOrderId] = useState('');
@@ -830,6 +847,7 @@ const Tickets = ({ tickets, uid }: { tickets: any[], uid: string }) => {
     if (!message.trim()) return;
     
     const ticketId = Math.floor(10000 + Math.random() * 90000).toString();
+    console.log("Submitting ticket:", { ticketId, uid, subject: subcategory || subject, message });
     const path = 'tickets';
     
     try {
@@ -845,7 +863,7 @@ const Tickets = ({ tickets, uid }: { tickets: any[], uid: string }) => {
       
       setMessage('');
       setOrderId('');
-      alert('Ticket submitted successfully!');
+      showToast('Ticket submitted successfully!', 'success');
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, path);
     }
@@ -980,15 +998,10 @@ const Tickets = ({ tickets, uid }: { tickets: any[], uid: string }) => {
   );
 };
 
-const Subscriptions = () => {
+const Subscriptions = ({ subscriptions }: { subscriptions: any[] }) => {
   const tabs = ["All", "Pending", "Active", "Completed", "Canceled", "Expired"];
   const [activeTab, setActiveTab] = useState("All");
   const [searchTerm, setSearchTerm] = useState('');
-
-  const subscriptions = [
-    { id: "58293", date: "2026-03-18 10:22:45", service: "4680 — Instagram Followers [Refill - 30Days ♻️]", link: "https://instagram.com/user", quantity: "100", posts: "0/10", status: "Active" },
-    { id: "58112", date: "2026-03-15 14:10:12", service: "4569 — TikTok Followers [OPEN LIVE STREAM]", link: "https://tiktok.com/@user", quantity: "500", posts: "5/5", status: "Completed" },
-  ];
 
   const filteredSubscriptions = (activeTab === "All" 
     ? subscriptions 
@@ -1243,14 +1256,12 @@ const Profile = ({ username, uid, balance, totalSpent, memberSince }: { username
 };
 const AddFunds = ({ 
   uid, 
-  showToast,
-  paypalError
+  showToast
 }: { 
   uid: string, 
-  showToast: (m: string, t: 'success' | 'error') => void,
-  paypalError: boolean
+  showToast: (m: string, t: 'success' | 'error') => void
 }) => {
-  const [method, setMethod] = useState<'paypal' | 'crypto'>('paypal');
+  const [method, setMethod] = useState<'crypto' | 'paypal'>('crypto');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -1261,6 +1272,7 @@ const AddFunds = ({
     }
 
     setLoading(true);
+    console.log("Adding funds via crypto:", { amount, uid });
     try {
       // Simulate crypto payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -1281,7 +1293,7 @@ const AddFunds = ({
       const userRef = doc(db, 'users', uid);
       const userDoc = await getDoc(userRef);
       if (userDoc.exists()) {
-        const currentBalance = userDoc.data().balance || 0;
+        const currentBalance = Number(userDoc.data().balance) || 0;
         await updateDoc(userRef, {
           balance: currentBalance + parseFloat(amount)
         });
@@ -1291,42 +1303,8 @@ const AddFunds = ({
       setAmount('');
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'transactions');
-      showToast('Payment failed. Please try again.', 'error');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const onPayPalSuccess = async (details: any) => {
-    try {
-      const amountPaid = details.purchase_units[0].amount.value;
-      const transactionId = details.id;
-
-      // Add transaction record
-      await addDoc(collection(db, 'transactions'), {
-        uid,
-        amount: parseFloat(amountPaid),
-        method: 'paypal',
-        status: 'Completed',
-        id: transactionId,
-        createdAt: serverTimestamp()
-      });
-
-      // Update user balance
-      const userRef = doc(db, 'users', uid);
-      const userDoc = await getDoc(userRef);
-      if (userDoc.exists()) {
-        const currentBalance = userDoc.data().balance || 0;
-        await updateDoc(userRef, {
-          balance: currentBalance + parseFloat(amountPaid)
-        });
-      }
-
-      showToast(`Successfully added $${amountPaid} to your balance via PayPal!`, 'success');
-      setAmount('');
-    } catch (error) {
-      console.error("PayPal processing error", error);
-      showToast('Failed to update balance. Please contact support.', 'error');
     }
   };
 
@@ -1337,87 +1315,43 @@ const AddFunds = ({
         
         <div className="grid grid-cols-2 gap-4 mb-8">
           <button 
-            onClick={() => setMethod('paypal')}
-            className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${method === 'paypal' ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-slate-200'}`}
-          >
-            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600">
-              <CreditCard size={28} />
-            </div>
-            <span className="text-smm-text-dark font-bold">PayPal</span>
-          </button>
-          <button 
             onClick={() => setMethod('crypto')}
-            className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${method === 'crypto' ? 'border-orange-500 bg-orange-50' : 'border-slate-100 hover:border-slate-200'}`}
+            className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${method === 'crypto' ? 'border-orange-500 bg-orange-50' : 'border-slate-100 hover:border-orange-200'}`}
           >
             <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-orange-500">
               <Bitcoin size={28} />
             </div>
             <span className="text-smm-text-dark font-bold">Crypto</span>
           </button>
+
+          <button 
+            onClick={() => setMethod('paypal')}
+            className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${method === 'paypal' ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-blue-200'}`}
+          >
+            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500">
+              <CreditCard size={28} />
+            </div>
+            <span className="text-smm-text-dark font-bold">PayPal</span>
+          </button>
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Amount (USD)</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-              <input 
-                type="number" 
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00" 
-                className="w-full pl-8 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-lg" 
-              />
-            </div>
-            <p className="text-[10px] text-slate-400 mt-2 ml-1 font-bold uppercase tracking-widest">Minimum deposit: $5.00</p>
-          </div>
-
-          {method === 'paypal' ? (
-            <div className="mt-4">
-              {paypalError ? (
-                <div className="bg-red-50 p-6 rounded-2xl border border-red-100 text-center">
-                  <AlertCircle className="mx-auto text-red-500 mb-3" size={32} />
-                  <h4 className="text-red-600 font-black text-xs uppercase tracking-widest mb-2">PayPal Error</h4>
-                  <p className="text-[10px] text-red-500 font-bold uppercase tracking-wide">
-                    The PayPal payment system failed to load. This is likely due to an invalid PayPal Client ID. 
-                    Please contact support or use Crypto instead.
-                  </p>
-                </div>
-              ) : (!amount || parseFloat(amount) < 5) ? (
-                <button 
-                  disabled
-                  className="w-full py-5 bg-slate-200 text-slate-400 font-black text-sm uppercase tracking-widest rounded-2xl cursor-not-allowed"
-                >
-                  Enter amount to pay with PayPal
-                </button>
-              ) : (
-                <PayPalButtons 
-                  style={{ layout: "vertical", shape: "rect", label: "pay" }}
-                  createOrder={(data, actions) => {
-                    return actions.order.create({
-                      intent: "CAPTURE",
-                      purchase_units: [
-                        {
-                          amount: {
-                            currency_code: "USD",
-                            value: amount,
-                          },
-                        },
-                      ],
-                    });
-                  }}
-                  onApprove={async (data, actions) => {
-                    const details = await actions.order?.capture();
-                    onPayPalSuccess(details);
-                  }}
-                  onError={(err) => {
-                    console.error("PayPal Error", err);
-                    showToast("PayPal checkout failed. Please try again.", "error");
-                  }}
+        {method === 'crypto' ? (
+          <div className="space-y-6">
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Amount (USD)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                <input 
+                  type="number" 
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00" 
+                  className="w-full pl-8 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-lg" 
                 />
-              )}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-2 ml-1 font-bold uppercase tracking-widest">Minimum deposit: $5.00</p>
             </div>
-          ) : (
+
             <button 
               onClick={handleCryptoPayment}
               disabled={loading}
@@ -1432,18 +1366,50 @@ const AddFunds = ({
                 </>
               )}
             </button>
-          )}
 
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-            <h4 className="text-smm-text-dark font-black text-xs uppercase tracking-widest mb-3">Instructions:</h4>
-            <ul className="text-[11px] text-slate-500 font-bold space-y-2 uppercase tracking-wide">
-              <li>• Funds are added automatically after payment confirmation.</li>
-              <li>• PayPal payments may take up to 5 minutes to reflect.</li>
-              <li>• Crypto payments require 3 network confirmations.</li>
-              <li>• Contact support if funds are not added within 1 hour.</li>
-            </ul>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h4 className="text-smm-text-dark font-black text-xs uppercase tracking-widest mb-3">Instructions:</h4>
+              <ul className="text-[11px] text-slate-500 font-bold space-y-2 uppercase tracking-wide">
+                <li>• Funds are added automatically after payment confirmation.</li>
+                <li>• Crypto payments require 3 network confirmations.</li>
+                <li>• Contact support if funds are not added within 1 hour.</li>
+              </ul>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="bg-blue-50 p-8 rounded-3xl border border-blue-100 text-center">
+              <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center text-blue-600 mx-auto mb-6">
+                <CreditCard size={40} />
+              </div>
+              <h3 className="text-blue-900 font-black text-xl mb-3 uppercase tracking-tight">Pay with PayPal</h3>
+              <p className="text-blue-700 text-sm font-bold mb-8 uppercase tracking-widest leading-relaxed">
+                Send your payment directly via PayPal.me<br/>
+                Include your username in the payment note
+              </p>
+              <a 
+                href="https://www.paypal.me/CARDIEGO" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:bg-blue-700 transition-all hover:scale-105"
+              >
+                <ExternalLink size={20} />
+                Go to PayPal.me/CARDIEGO
+              </a>
+            </div>
+
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h4 className="text-smm-text-dark font-black text-xs uppercase tracking-widest mb-3">Instructions:</h4>
+              <ul className="text-[11px] text-slate-500 font-bold space-y-2 uppercase tracking-wide">
+                <li>• Click the link above to open PayPal.me/CARDIEGO.</li>
+                <li>• Enter the amount you wish to add to your balance.</li>
+                <li>• <span className="text-blue-600">IMPORTANT:</span> Add your username or email in the payment note.</li>
+                <li>• Funds will be added manually to your account within 1-12 hours.</li>
+                <li>• Send a ticket with your transaction ID for faster processing.</li>
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1455,6 +1421,8 @@ const AdminDashboard = ({
   tickets,
   refills,
   users,
+  subscriptions,
+  updates,
   showToast
 }: { 
   services: Service[], 
@@ -1462,9 +1430,11 @@ const AdminDashboard = ({
   tickets: any[],
   refills: any[],
   users: any[],
+  subscriptions: any[],
+  updates: any[],
   showToast: (msg: string, type: 'success' | 'error') => void
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'orders' | 'tickets' | 'refills' | 'users'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'orders' | 'tickets' | 'refills' | 'users' | 'subscriptions' | 'updates'>('dashboard');
   const [newName, setNewName] = useState('');
   const [newRate, setNewRate] = useState('');
   const [newMin, setNewMin] = useState('');
@@ -1472,6 +1442,10 @@ const AdminDashboard = ({
   const [newCategory, setNewCategory] = useState('Instagram Followers');
   const [newDescription, setNewDescription] = useState('');
   const [isSeeding, setIsSeeding] = useState(false);
+  
+  const [newUpdateServiceId, setNewUpdateServiceId] = useState('');
+  const [newUpdateServiceName, setNewUpdateServiceName] = useState('');
+  const [newUpdateText, setNewUpdateText] = useState('');
 
   const totalRevenue = orders.reduce((acc, curr) => acc + parseFloat(curr.charge || 0), 0).toFixed(2);
 
@@ -1507,7 +1481,15 @@ const AdminDashboard = ({
   const handleSeedBulk = async () => {
     setIsSeeding(true);
     try {
-      await seedBulkServices();
+      const result = await seedBulkServices();
+      if (result.success) {
+        showToast(`Successfully seeded ${result.count} services!`, 'success');
+      } else {
+        showToast(`Seeding failed: ${result.error || 'Unknown error'}`, 'error');
+      }
+    } catch (error) {
+      showToast('Failed to seed services. Check console for details.', 'error');
+      console.error(error);
     } finally {
       setIsSeeding(false);
     }
@@ -1515,19 +1497,33 @@ const AdminDashboard = ({
 
   const handleAddService = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newRate || !newMin || !newMax) return;
+    if (!newName || !newRate || !newMin || !newMax) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
+
+    const minVal = parseInt(newMin);
+    const maxVal = parseInt(newMax);
+    const rateVal = parseFloat(newRate);
+
+    if (isNaN(minVal) || isNaN(maxVal) || isNaN(rateVal)) {
+      showToast('Please enter valid numbers for Rate, Min, and Max', 'error');
+      return;
+    }
 
     const serviceId = Math.floor(1000 + Math.random() * 9000).toString();
     const newService = {
       id: parseInt(serviceId),
       name: newName,
-      rate: `$${newRate}`,
-      min: parseInt(newMin),
-      max: parseInt(newMax),
+      rate: `$${rateVal.toFixed(2)}`,
+      min: minVal,
+      max: maxVal,
       category: newCategory,
       description: newDescription,
       createdAt: serverTimestamp()
     };
+
+    console.log("Attempting to add service:", newService);
 
     try {
       await setDoc(doc(db, 'services', serviceId), newService);
@@ -1536,13 +1532,15 @@ const AdminDashboard = ({
       setNewMin('');
       setNewMax('');
       setNewDescription('');
-      alert('Service added successfully!');
+      showToast('Service added successfully!', 'success');
     } catch (error) {
+      console.error("Error adding service:", error);
       handleFirestoreError(error, OperationType.WRITE, `services/${serviceId}`);
     }
   };
 
   const handleDeleteService = async (id: number) => {
+    console.log("Attempting to delete service:", id);
     if (window.confirm('Are you sure you want to delete this service?')) {
       try {
         await deleteDoc(doc(db, 'services', id.toString()));
@@ -1552,42 +1550,91 @@ const AdminDashboard = ({
     }
   };
 
+  const [editingRates, setEditingRates] = useState<{[key: number]: string}>({});
+
   const updateServiceRate = async (serviceId: number, newRate: string) => {
     if (!newRate) return;
+    console.log("Attempting to update service rate:", { serviceId, newRate });
     const formattedRate = newRate.startsWith('$') ? newRate : `$${newRate}`;
     try {
       await updateDoc(doc(db, 'services', serviceId.toString()), { rate: formattedRate });
-      alert('Price updated successfully!');
+      showToast('Price updated successfully!', 'success');
+      // Clear editing state for this service
+      setEditingRates(prev => {
+        const next = { ...prev };
+        delete next[serviceId];
+        return next;
+      });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `services/${serviceId}`);
     }
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    console.log("Admin updating order status:", { orderId, newStatus });
     try {
       await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
+      showToast(`Order ${orderId} status updated to ${newStatus}`, 'success');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${orderId}`);
     }
   };
 
   const updateTicketStatus = async (ticketId: string, newStatus: string) => {
+    console.log("Admin updating ticket status:", { ticketId, newStatus });
     try {
       await updateDoc(doc(db, 'tickets', ticketId), { status: newStatus });
+      showToast(`Ticket ${ticketId} status updated to ${newStatus}`, 'success');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `tickets/${ticketId}`);
     }
   };
 
   const updateRefillStatus = async (refillId: string, newStatus: string) => {
+    console.log("Admin updating refill status:", { refillId, newStatus });
     try {
       await updateDoc(doc(db, 'refills', refillId), { status: newStatus });
+      showToast(`Refill ${refillId} status updated to ${newStatus}`, 'success');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `refills/${refillId}`);
     }
   };
 
+  const updateSubscriptionStatus = async (subId: string, newStatus: string) => {
+    console.log("Admin updating subscription status:", { subId, newStatus });
+    try {
+      await updateDoc(doc(db, 'subscriptions', subId), { status: newStatus });
+      showToast(`Subscription ${subId} status updated to ${newStatus}`, 'success');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `subscriptions/${subId}`);
+    }
+  };
+
+  const handleAddUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUpdateServiceId || !newUpdateServiceName || !newUpdateText) {
+      showToast('Please fill all update fields', 'error');
+      return;
+    }
+    console.log("Admin adding update:", { serviceId: newUpdateServiceId, serviceName: newUpdateServiceName, update: newUpdateText });
+    try {
+      await addDoc(collection(db, 'updates'), {
+        id: parseInt(newUpdateServiceId),
+        service: newUpdateServiceName,
+        update: newUpdateText,
+        createdAt: serverTimestamp()
+      });
+      setNewUpdateServiceId('');
+      setNewUpdateServiceName('');
+      setNewUpdateText('');
+      showToast('Update added successfully!', 'success');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'updates');
+    }
+  };
+
   const updateUserBalance = async (userId: string, newBalance: number, addedAmount?: number) => {
+    console.log("Admin updating user balance:", { userId, newBalance, addedAmount });
     try {
       await updateDoc(doc(db, 'users', userId), { balance: newBalance });
       
@@ -1597,9 +1644,10 @@ const AdminDashboard = ({
           uid: userId,
           amount: addedAmount,
           method: 'Admin Adjustment',
-          status: 'completed',
+          status: 'Completed',
           createdAt: serverTimestamp(),
-          type: addedAmount >= 0 ? 'deposit' : 'withdrawal'
+          type: addedAmount >= 0 ? 'deposit' : 'withdrawal',
+          id: Math.random().toString(36).substring(2, 10).toUpperCase()
         });
       }
       
@@ -1696,6 +1744,18 @@ const AdminDashboard = ({
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'users' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
           >
             Users
+          </button>
+          <button 
+            onClick={() => setActiveTab('subscriptions')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'subscriptions' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+          >
+            Subscriptions
+          </button>
+          <button 
+            onClick={() => setActiveTab('updates')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'updates' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+          >
+            Updates
           </button>
         </div>
       </div>
@@ -1872,15 +1932,20 @@ const AdminDashboard = ({
                             <span className="absolute left-2 text-slate-400 font-bold">$</span>
                             <input 
                               type="text" 
-                              id={`rate-${s.id}`}
-                              defaultValue={s.rate.replace('$', '')}
+                              value={editingRates[s.id] !== undefined ? editingRates[s.id] : s.rate.replace('$', '')}
+                              onChange={(e) => {
+                                setEditingRates(prev => ({
+                                  ...prev,
+                                  [s.id]: e.target.value
+                                }));
+                              }}
                               className="w-24 pl-5 pr-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500/20"
                             />
                           </div>
                           <button 
                             onClick={() => {
-                              const input = document.getElementById(`rate-${s.id}`) as HTMLInputElement;
-                              updateServiceRate(s.id, input.value);
+                              const val = editingRates[s.id] !== undefined ? editingRates[s.id] : s.rate.replace('$', '');
+                              updateServiceRate(s.id, val);
                             }}
                             className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
                             title="Save Price"
@@ -2214,6 +2279,160 @@ const AdminDashboard = ({
           </div>
         </div>
       )}
+
+      {activeTab === 'subscriptions' && (
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div className="p-6 border-b border-slate-100">
+            <h3 className="text-smm-text-dark font-bold">Manage Subscriptions ({subscriptions.length})</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                  <th className="px-6 py-4">ID</th>
+                  <th className="px-6 py-4">User</th>
+                  <th className="px-6 py-4">Service</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
+                {subscriptions.map((s) => (
+                  <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-bold">{s.id}</td>
+                    <td className="px-6 py-4">{s.username || s.uid}</td>
+                    <td className="px-6 py-4 max-w-xs truncate">{s.service}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        s.status === 'Active' ? 'bg-emerald-100 text-emerald-600' : 
+                        s.status === 'Pending' ? 'bg-amber-100 text-amber-600' : 
+                        'bg-slate-100 text-slate-600'
+                      }`}>
+                        {s.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <select 
+                        className="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[10px]"
+                        value={s.status}
+                        onChange={(e) => updateSubscriptionStatus(s.id, e.target.value)}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Canceled">Canceled</option>
+                        <option value="Expired">Expired</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'updates' && (
+        <div className="space-y-6">
+          <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
+            <h3 className="text-smm-text-dark font-black text-xl uppercase tracking-tight mb-6 flex items-center gap-2">
+              <Plus className="text-blue-600" size={20} />
+              Add New Update
+            </h3>
+            <form onSubmit={handleAddUpdate} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Service ID</label>
+                <input 
+                  type="number" 
+                  value={newUpdateServiceId}
+                  onChange={(e) => setNewUpdateServiceId(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                  placeholder="e.g. 4133"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Service Name</label>
+                <input 
+                  type="text" 
+                  value={newUpdateServiceName}
+                  onChange={(e) => setNewUpdateServiceName(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                  placeholder="e.g. TikTok Followers"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update Description</label>
+                <input 
+                  type="text" 
+                  value={newUpdateText}
+                  onChange={(e) => setNewUpdateText(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                  placeholder="e.g. Rate increased from $1 to $2"
+                />
+              </div>
+              <div className="md:col-span-3 flex justify-end">
+                <button 
+                  type="submit"
+                  className="px-8 py-3 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all"
+                >
+                  Post Update
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+              <h3 className="text-smm-text-dark font-bold">Recent Updates ({updates.length})</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                    <th className="px-6 py-4">Service</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Update</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
+                  {updates.map((u) => (
+                    <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-slate-200 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0">{u.id}</span>
+                          <span className="font-semibold">{u.service}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {u.createdAt instanceof Timestamp ? u.createdAt.toDate().toLocaleDateString() : u.date || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4">{u.update}</td>
+                      <td className="px-6 py-4 text-right">
+                        <button 
+                          onClick={async () => {
+                            if (window.confirm('Delete this update?')) {
+                              try {
+                                await deleteDoc(doc(db, 'updates', u.id));
+                                showToast('Update deleted', 'success');
+                              } catch (error) {
+                                handleFirestoreError(error, OperationType.DELETE, `updates/${u.id}`);
+                              }
+                            }
+                          }}
+                          className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -2386,6 +2605,7 @@ const ArrowRight = ({ size, className }: { size?: number, className?: string }) 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
   const [username, setUsername] = useState('Guest');
   const [uid, setUid] = useState<string | null>(null);
   const [balance, setBalance] = useState('0.00');
@@ -2399,11 +2619,11 @@ export default function App() {
   const [refills, setRefills] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [updates, setUpdates] = useState<any[]>([]);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
-
-  const [paypalError, setPaypalError] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -2411,9 +2631,34 @@ export default function App() {
   };
 
   useEffect(() => {
+    const testConnection = async () => {
+      try {
+        await getDocFromServer(doc(db, 'test', 'connection'));
+        console.log("Firestore connection test successful.");
+      } catch (error) {
+        console.error("Firestore connection test error:", error);
+      }
+    };
+    testConnection();
+  }, []);
+
+  useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       console.error("Global error caught:", event.error);
-      showToast(`System Error: ${event.message}`, "error");
+      let displayMsg = event.message;
+      try {
+        // Check if message is JSON (from handleFirestoreError)
+        const errObj = JSON.parse(event.message);
+        if (errObj.error) {
+          displayMsg = errObj.error;
+          if (displayMsg.includes('insufficient permissions')) {
+            displayMsg = "Permission denied. Your account might be restricted.";
+          }
+        }
+      } catch (e) {
+        // Not JSON, use original message
+      }
+      showToast(`System Error: ${displayMsg}`, "error");
     };
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
@@ -2423,16 +2668,21 @@ export default function App() {
     console.log("Initializing Auth Listener...");
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log("Auth state changed. User:", user ? user.email : "None");
+      if (user) {
+        console.log("User email from auth:", user.email);
+        console.log("User UID from auth:", user.uid);
+      }
       try {
         if (user) {
           setUid(user.uid);
+          setEmail(user.email);
           
           // Set initial username from auth object immediately
           const initialUsername = user.displayName || user.email?.split('@')[0] || 'User';
           setUsername(initialUsername);
           
           // Immediate admin check for UI responsiveness
-          const isUserAdmin = (user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'shaikhmubasshir76@gmail.com');
+          const isUserAdmin = (user.email === 'shaikhmubasshir76@gmail.com' || user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'Lombardiraffaelo6@gmail.com');
           if (isUserAdmin) setIsAdmin(true);
 
           // Check if user exists in Firestore, if not create
@@ -2446,7 +2696,7 @@ export default function App() {
                 uid: user.uid,
                 email: user.email,
                 username: user.displayName || user.email?.split('@')[0] || 'User',
-                role: (user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'shaikhmubasshir76@gmail.com') ? 'admin' : 'user',
+                role: (user.email === 'shaikhmubasshir76@gmail.com' || user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'Lombardiraffaelo6@gmail.com') ? 'admin' : 'user',
                 balance: 0,
                 totalSpent: 0,
                 createdAt: Timestamp.now()
@@ -2463,13 +2713,21 @@ export default function App() {
             
             // Ensure admin role is set if email matches
             let role = userData.role;
-            if ((user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'shaikhmubasshir76@gmail.com') && role !== 'admin') {
+            const isUserAdminByEmail = (user.email === 'shaikhmubasshir76@gmail.com' || user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'Lombardiraffaelo6@gmail.com');
+            
+            if (isUserAdminByEmail && role !== 'admin') {
               console.log("Updating role to admin...");
-              role = 'admin';
-              await updateDoc(userDocRef, { role: 'admin' });
+              try {
+                await updateDoc(userDocRef, { role: 'admin' });
+                role = 'admin';
+              } catch (err) {
+                console.error("Failed to update role to admin in Firestore, but user is admin by email.", err);
+                role = 'admin'; // Force role to admin for UI state
+              }
             }
             
-            setIsAdmin(role === 'admin');
+            setIsAdmin(isUserAdminByEmail || role === 'admin');
+            console.log("Is Admin set to:", isUserAdminByEmail || role === 'admin');
             
             // If the stored username is generic but we have a display name from Google, update it
             let currentUsername = userData.username || 'User';
@@ -2540,7 +2798,7 @@ export default function App() {
       setServices(servicesList);
     }, (error) => {
       console.error("Services snapshot error", error);
-      showToast("Failed to load services. Please check your connection.", "error");
+      handleFirestoreError(error, OperationType.GET, 'services');
     });
 
     // Real-time orders (if admin see all, if user see only own)
@@ -2553,7 +2811,7 @@ export default function App() {
       setOrders(ordersList);
     }, (error) => {
       console.error("Orders snapshot error", error);
-      showToast("Failed to load orders.", "error");
+      handleFirestoreError(error, OperationType.GET, 'orders');
     });
 
     // Real-time tickets
@@ -2566,7 +2824,7 @@ export default function App() {
       setTickets(ticketsList);
     }, (error) => {
       console.error("Tickets snapshot error", error);
-      showToast("Failed to load tickets.", "error");
+      handleFirestoreError(error, OperationType.GET, 'tickets');
     });
 
     // Real-time refills
@@ -2579,7 +2837,7 @@ export default function App() {
       setRefills(refillsList);
     }, (error) => {
       console.error("Refills snapshot error", error);
-      showToast("Failed to load refills.", "error");
+      handleFirestoreError(error, OperationType.GET, 'refills');
     });
 
     // Real-time users (admin only)
@@ -2590,7 +2848,7 @@ export default function App() {
         setUsers(usersList);
       }, (error) => {
         console.error("Users snapshot error", error);
-        showToast("Failed to load users list.", "error");
+        handleFirestoreError(error, OperationType.GET, 'users');
       });
     }
 
@@ -2604,7 +2862,7 @@ export default function App() {
       }
     }, (error) => {
       console.error("User profile snapshot error", error);
-      showToast("Failed to sync profile data.", "error");
+      handleFirestoreError(error, OperationType.GET, `users/${uid}`);
     });
 
     // Real-time transactions
@@ -2614,8 +2872,21 @@ export default function App() {
       setTransactions(transactionsList);
     }, (error) => {
       console.error("Transactions snapshot error", error);
-      showToast("Failed to load transactions.", "error");
+      handleFirestoreError(error, OperationType.GET, 'transactions');
     });
+
+    // Real-time subscriptions
+    const subscriptionsQuery = isAdmin 
+      ? collection(db, 'subscriptions')
+      : query(collection(db, 'subscriptions'), where('uid', '==', uid));
+    const subscriptionsUnsubscribe = onSnapshot(subscriptionsQuery, (snapshot) => {
+      setSubscriptions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'subscriptions'));
+
+    // Real-time updates
+    const updatesUnsubscribe = onSnapshot(query(collection(db, 'updates'), orderBy('createdAt', 'desc')), (snapshot) => {
+      setUpdates(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'updates'));
 
     return () => {
       servicesUnsubscribe();
@@ -2623,10 +2894,12 @@ export default function App() {
       ticketsUnsubscribe();
       refillsUnsubscribe();
       transactionsUnsubscribe();
+      subscriptionsUnsubscribe();
+      updatesUnsubscribe();
       usersUnsubscribe();
       userUnsubscribe();
     };
-  }, [isLoggedIn, isAdmin, uid]);
+  }, [isLoggedIn, isAdmin, uid, isProfileLoaded]);
 
   // Auto-seed services if admin and empty
   useEffect(() => {
@@ -2676,17 +2949,17 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
-      case 'new-order': return <NewOrder setActivePage={setActivePage} balance={balance} totalSpent={totalSpent} services={services} username={username} uid={uid!} orders={orders} />;
-      case 'orders': return <Orders setActivePage={setActivePage} orders={orders} uid={uid!} />;
-      case 'tickets': return <Tickets tickets={tickets} uid={uid!} />;
-      case 'subscriptions': return <Subscriptions />;
+      case 'new-order': return <NewOrder setActivePage={setActivePage} balance={balance} totalSpent={totalSpent} services={services} username={username} uid={uid!} orders={orders} showToast={showToast} />;
+      case 'orders': return <Orders setActivePage={setActivePage} orders={orders} uid={uid!} showToast={showToast} />;
+      case 'tickets': return <Tickets tickets={tickets} uid={uid!} showToast={showToast} />;
+      case 'subscriptions': return <Subscriptions subscriptions={subscriptions} />;
       case 'refill': return <Refill refills={refills} />;
-      case 'add-funds': return <AddFunds uid={uid!} showToast={showToast} paypalError={paypalError} />;
+      case 'add-funds': return <AddFunds uid={uid!} showToast={showToast} />;
       case 'transactions': return <Transactions transactions={transactions} />;
       case 'profile': return <Profile username={username} uid={uid!} balance={balance} totalSpent={totalSpent} memberSince={memberSince} />;
       case 'services': return <Services services={services} />;
-      case 'mass-order': return <MassOrder services={services} uid={uid!} balance={balance} totalSpent={totalSpent} />;
-      case 'updates': return <Updates />;
+      case 'mass-order': return <MassOrder services={services} uid={uid!} balance={balance} totalSpent={totalSpent} showToast={showToast} />;
+      case 'updates': return <Updates updates={updates} />;
       case 'admin': return (
         <AdminDashboard 
           services={services} 
@@ -2694,22 +2967,25 @@ export default function App() {
           tickets={tickets}
           refills={refills}
           users={users}
+          subscriptions={subscriptions}
+          updates={updates}
           showToast={showToast}
         />
       );
-      default: return <div className="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Coming Soon: {activePage}</div>;
+      default: return (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+            <LayoutGrid size={32} />
+          </div>
+          <h3 className="font-black text-sm uppercase tracking-[0.2em]">Lombardi Services</h3>
+          <p className="text-xs font-bold mt-2 uppercase tracking-widest opacity-60">This section is being updated</p>
+        </div>
+      );
     }
   };
 
   return (
-    <PayPalScriptProvider 
-      options={{ "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "test" }}
-      onError={(err) => {
-        console.error("PayPal SDK failed to load", err);
-        setPaypalError(true);
-      }}
-    >
-      <div className="min-h-screen bg-smm-bg text-white font-sans">
+    <div className="min-h-screen bg-smm-bg text-white font-sans">
       <Sidebar 
         activePage={activePage} 
         setActivePage={setActivePage} 
@@ -2756,6 +3032,5 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
-    </PayPalScriptProvider>
   );
 }
