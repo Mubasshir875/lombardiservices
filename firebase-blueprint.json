@@ -16,8 +16,8 @@
       "required": ["uid", "email", "role", "balance"]
     },
     "Service": {
-      "title": "SMM Service",
-      "description": "Available SMM services for purchase.",
+      "title": "Lombardi Service",
+      "description": "Available Lombardi services for purchase.",
       "type": "object",
       "properties": {
         "name": { "type": "string" },

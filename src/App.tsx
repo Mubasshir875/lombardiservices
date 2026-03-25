@@ -29,10 +29,10 @@ import {
   MessageCircle,
   Send,
   Music,
-  Instagram as InstagramIcon,
-  Twitter as TwitterIcon,
-  Facebook as FacebookIcon,
-  Youtube as YoutubeIcon,
+  Instagram,
+  Twitter,
+  Facebook,
+  Youtube,
   Twitch,
   Ghost,
   Play,
@@ -58,7 +58,8 @@ import {
   X,
   Database,
   Home,
-  ExternalLink
+  ExternalLink,
+  QrCode
 } from "lucide-react";
 import { seedServices as seedBulkServices } from "./services/bulkServices";
 import { 
@@ -81,6 +82,7 @@ import {
   onSnapshot, 
   setDoc, 
   getDoc, 
+  getDocs,
   addDoc, 
   updateDoc, 
   deleteDoc, 
@@ -153,17 +155,17 @@ const Sidebar = ({ activePage, setActivePage, isAdmin, isOpen, setIsOpen }: { ac
         )}
       </AnimatePresence>
 
-      <div className={`w-64 bg-smm-sidebar h-screen fixed left-0 top-0 flex flex-col p-4 overflow-y-auto z-50 transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`w-64 bg-white h-screen fixed left-0 top-0 flex flex-col p-4 overflow-y-auto z-50 transition-transform duration-300 border-r border-slate-200 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col items-center mb-8 cursor-pointer" onClick={() => { setActivePage('new-order'); setIsOpen(false); }}>
           <div className="w-16 h-16 mb-2">
-            <svg viewBox="0 0 100 100" className="w-full h-full text-orange-500 fill-current">
+            <svg viewBox="0 0 100 100" className="w-full h-full text-blue-600 fill-current">
               <path d="M50 10 C30 10 10 30 10 50 C10 70 30 90 50 90 C70 90 90 70 90 50 C90 30 70 10 50 10 Z M50 20 C65 20 75 30 75 45 C75 60 65 70 50 70 C35 70 25 60 25 45 C25 30 35 20 50 20 Z" />
               <path d="M45 40 L55 40 L50 50 Z" />
             </svg>
           </div>
           <div className="text-center">
-            <span className="text-white font-black text-xs tracking-tighter block">LOMBARDI</span>
-            <span className="text-blue-400 font-bold text-[10px] tracking-widest uppercase">SERVICES</span>
+            <span className="text-smm-dark font-black text-xs tracking-tighter block">SMM</span>
+            <span className="text-blue-600 font-bold text-[10px] tracking-widest uppercase">SERVICES</span>
           </div>
         </div>
 
@@ -178,6 +180,16 @@ const Sidebar = ({ activePage, setActivePage, isAdmin, isOpen, setIsOpen }: { ac
               <span>{item.label}</span>
             </div>
           ))}
+          
+          <a 
+            href="https://wa.me/message/XRM6CMEHIU5EP1" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="sidebar-item sidebar-item-inactive mt-4 text-emerald-600 hover:bg-emerald-50"
+          >
+            <MessageCircle size={18} />
+            <span>WhatsApp Support</span>
+          </a>
         </div>
       </div>
     </>
@@ -186,29 +198,38 @@ const Sidebar = ({ activePage, setActivePage, isAdmin, isOpen, setIsOpen }: { ac
 
 const Header = ({ balance, onLogout, onMenuClick, setActivePage }: { balance: string, onLogout: () => void, onMenuClick: () => void, setActivePage: (p: Page) => void }) => {
   return (
-    <div className="fixed top-0 right-0 left-0 lg:left-64 h-16 flex items-center justify-between lg:justify-end px-4 lg:px-8 z-40 bg-smm-bg/50 backdrop-blur-sm">
-      <button onClick={onMenuClick} className="lg:hidden p-2 text-white bg-smm-sidebar rounded-lg">
+    <div className="fixed top-0 right-0 left-0 lg:left-64 h-16 flex items-center justify-between lg:justify-end px-4 lg:px-8 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <button onClick={onMenuClick} className="lg:hidden p-2 text-smm-dark bg-slate-100 rounded-lg">
         <Menu size={20} />
       </button>
       <div className="flex items-center gap-4 lg:gap-6">
+        <a 
+          href="https://wa.me/message/XRM6CMEHIU5EP1" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-sm font-bold border border-emerald-100 hover:bg-emerald-100 transition-all"
+        >
+          <MessageCircle size={14} />
+          Support
+        </a>
         <div 
           onClick={() => setActivePage('add-funds')}
-          className="bg-white/10 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium cursor-pointer border border-white/10 hover:bg-white/20 transition-all"
+          className="bg-blue-50 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-bold cursor-pointer border border-blue-100 hover:bg-blue-100 transition-all"
         >
-          <Wallet size={14} className="text-emerald-400" />
-          <span className="text-white">${balance}</span>
-          <Plus size={14} className="text-slate-400" />
+          <Wallet size={14} className="text-blue-600" />
+          <span className="text-blue-600">${balance}</span>
+          <Plus size={14} className="text-blue-400" />
         </div>
         <button 
           onClick={() => setActivePage('profile')}
-          className="text-sm font-medium text-slate-300 hover:text-white transition-colors hidden sm:flex items-center gap-2"
+          className="text-sm font-bold text-slate-500 hover:text-smm-primary transition-colors hidden sm:flex items-center gap-2"
         >
           <User size={16} />
           Account
         </button>
         <button 
           onClick={onLogout}
-          className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-2"
+          className="text-sm font-bold text-slate-500 hover:text-red-600 transition-colors flex items-center gap-2"
         >
           <LogIn size={16} className="rotate-180" />
           Logout
@@ -582,11 +603,11 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 bg-white rounded-3xl p-4 lg:p-8 shadow-2xl">
           <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3 lg:gap-4 mb-8">
-            <SocialIcon icon={<InstagramIcon size={20} />} color="#ec4899" onClick={() => setSelectedCategory('Instagram Followers [Guaranteed♻️]')} />
+            <SocialIcon icon={<Instagram size={20} />} color="#ec4899" onClick={() => setSelectedCategory('Instagram Followers [Guaranteed♻️]')} />
             <SocialIcon icon={<Music size={20} />} color="#10b981" onClick={() => setSelectedCategory('Tiktok Followers')} />
-            <SocialIcon icon={<YoutubeIcon size={20} />} color="#ef4444" onClick={() => setSelectedCategory('Real Ads YouTube Views ❤️‍🔥🔥')} />
-            <SocialIcon icon={<FacebookIcon size={20} />} color="#1d4ed8" onClick={() => setSelectedCategory('Facebook Page Likes+Followers')} />
-            <SocialIcon icon={<TwitterIcon size={20} />} color="#000000" onClick={() => setSelectedCategory('🐥Twitter Follower')} />
+            <SocialIcon icon={<Youtube size={20} />} color="#ef4444" onClick={() => setSelectedCategory('Real Ads YouTube Views ❤️‍🔥🔥')} />
+            <SocialIcon icon={<Facebook size={20} />} color="#1d4ed8" onClick={() => setSelectedCategory('Facebook Page Likes+Followers')} />
+            <SocialIcon icon={<Twitter size={20} />} color="#000000" onClick={() => setSelectedCategory('🐥Twitter Follower')} />
             <SocialIcon icon={<Send size={20} />} color="#38bdf8" onClick={() => setSelectedCategory('TELEGRAM MEMBERS [NON DROP]✅')} />
             <SocialIcon icon={<Menu size={20} />} color="#6366f1" onClick={() => setSelectedCategory('Other')} />
           </div>
@@ -1261,9 +1282,10 @@ const AddFunds = ({
   uid: string, 
   showToast: (m: string, t: 'success' | 'error') => void
 }) => {
-  const [method, setMethod] = useState<'crypto' | 'paypal'>('crypto');
+  const [method, setMethod] = useState<'crypto' | 'paypal' | 'paytm'>('paytm');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  const [transactionId, setTransactionId] = useState('');
 
   const handleCryptoPayment = async () => {
     if (!amount || parseFloat(amount) < 5) {
@@ -1277,7 +1299,7 @@ const AddFunds = ({
       // Simulate crypto payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const transactionId = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const tId = Math.random().toString(36).substring(2, 10).toUpperCase();
       
       // Add transaction record
       await addDoc(collection(db, 'transactions'), {
@@ -1285,7 +1307,7 @@ const AddFunds = ({
         amount: parseFloat(amount),
         method: 'crypto',
         status: 'Completed',
-        id: transactionId,
+        id: tId,
         createdAt: serverTimestamp()
       });
 
@@ -1295,7 +1317,7 @@ const AddFunds = ({
       if (userDoc.exists()) {
         const currentBalance = Number(userDoc.data().balance) || 0;
         await updateDoc(userRef, {
-          balance: currentBalance + parseFloat(amount)
+          balance: parseFloat((currentBalance + parseFloat(amount)).toFixed(4))
         });
       }
 
@@ -1308,34 +1330,117 @@ const AddFunds = ({
     }
   };
 
+  const handlePaytmPayment = async () => {
+    if (!amount || !transactionId) {
+      showToast('Please fill all fields', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Add transaction record as pending for admin approval
+      await addDoc(collection(db, 'transactions'), {
+        uid,
+        amount: parseFloat(amount),
+        method: 'paytm',
+        status: 'Pending',
+        id: transactionId,
+        createdAt: serverTimestamp()
+      });
+
+      showToast('Payment submitted for verification. Balance will be updated soon.', 'success');
+      setAmount('');
+      setTransactionId('');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'transactions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-3xl p-8 shadow-2xl">
         <h2 className="text-smm-text-dark font-black text-2xl mb-8 text-center uppercase tracking-tight">Add Funds</h2>
         
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <button 
+            onClick={() => setMethod('paytm')}
+            className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${method === 'paytm' ? 'border-blue-600 bg-blue-50' : 'border-slate-100 hover:border-blue-200'}`}
+          >
+            <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600">
+              <QrCode size={24} />
+            </div>
+            <span className="text-smm-text-dark font-bold text-xs uppercase tracking-widest">PayTM/UPI</span>
+          </button>
+
           <button 
             onClick={() => setMethod('crypto')}
-            className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${method === 'crypto' ? 'border-orange-500 bg-orange-50' : 'border-slate-100 hover:border-orange-200'}`}
+            className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${method === 'crypto' ? 'border-orange-500 bg-orange-50' : 'border-slate-100 hover:border-orange-200'}`}
           >
-            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-orange-500">
-              <Bitcoin size={28} />
+            <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-orange-500">
+              <Bitcoin size={24} />
             </div>
-            <span className="text-smm-text-dark font-bold">Crypto</span>
+            <span className="text-smm-text-dark font-bold text-xs uppercase tracking-widest">Crypto</span>
           </button>
 
           <button 
             onClick={() => setMethod('paypal')}
-            className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${method === 'paypal' ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-blue-200'}`}
+            className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${method === 'paypal' ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-blue-200'}`}
           >
-            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500">
-              <CreditCard size={28} />
+            <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500">
+              <CreditCard size={24} />
             </div>
-            <span className="text-smm-text-dark font-bold">PayPal</span>
+            <span className="text-smm-text-dark font-bold text-xs uppercase tracking-widest">PayPal</span>
           </button>
         </div>
 
-        {method === 'crypto' ? (
+        {method === 'paytm' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Transaction ID (UTR)</label>
+                <input 
+                  type="text" 
+                  value={transactionId}
+                  onChange={(e) => setTransactionId(e.target.value)}
+                  placeholder="Enter 12 digit UTR number" 
+                  className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20 font-bold" 
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Amount (USD)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                  <input 
+                    type="number" 
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00" 
+                    className="w-full pl-8 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20 font-bold" 
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={handlePaytmPayment}
+              disabled={loading}
+              className="w-full py-5 bg-blue-600 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle2 size={20} />
+                  Submit Payment
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        {method === 'crypto' && (
           <div className="space-y-6">
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Amount (USD)</label>
@@ -1376,7 +1481,9 @@ const AddFunds = ({
               </ul>
             </div>
           </div>
-        ) : (
+        )}
+
+        {method === 'paypal' && (
           <div className="space-y-6">
             <div className="bg-blue-50 p-8 rounded-3xl border border-blue-100 text-center">
               <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center text-blue-600 mx-auto mb-6">
@@ -1423,6 +1530,7 @@ const AdminDashboard = ({
   users,
   subscriptions,
   updates,
+  transactions,
   showToast
 }: { 
   services: Service[], 
@@ -1432,9 +1540,10 @@ const AdminDashboard = ({
   users: any[],
   subscriptions: any[],
   updates: any[],
+  transactions: any[],
   showToast: (msg: string, type: 'success' | 'error') => void
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'orders' | 'tickets' | 'refills' | 'users' | 'subscriptions' | 'updates'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'orders' | 'tickets' | 'refills' | 'users' | 'subscriptions' | 'updates' | 'transactions'>('dashboard');
   const [newName, setNewName] = useState('');
   const [newRate, setNewRate] = useState('');
   const [newMin, setNewMin] = useState('');
@@ -1449,10 +1558,22 @@ const AdminDashboard = ({
 
   const totalRevenue = orders.reduce((acc, curr) => acc + parseFloat(curr.charge || 0), 0).toFixed(2);
 
+  const handleAddAdminFunds = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { balance: 5000 });
+      showToast("Admin balance set to $5000.00", "success");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'users/' + user.uid);
+    }
+  };
+
   const [serviceSearch, setServiceSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
   const [orderSearch, setOrderSearch] = useState('');
   const [ticketSearch, setTicketSearch] = useState('');
+  const [transactionSearch, setTransactionSearch] = useState('');
 
   const filteredServices = services.filter(s => 
     s.name.toLowerCase().includes(serviceSearch.toLowerCase()) || 
@@ -1460,11 +1581,63 @@ const AdminDashboard = ({
     (s.category && s.category.toLowerCase().includes(serviceSearch.toLowerCase()))
   );
 
-  const filteredUsers = users.filter(u => 
-    u.username?.toLowerCase().includes(userSearch.toLowerCase()) || 
-    u.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
-    u.id?.toLowerCase().includes(userSearch.toLowerCase())
-  );
+  const filteredUsers = (users || []).filter(u => {
+    const search = (userSearch || "").toLowerCase();
+    const username = (u.username || "").toLowerCase();
+    const email = (u.email || "").toLowerCase();
+    const id = (u.id || "").toLowerCase();
+    return username.includes(search) || email.includes(search) || id.includes(search);
+  });
+
+  const [newUser, setNewUser] = useState({ username: '', email: '', balance: 0, uid: '' });
+  const [isAddingUser, setIsAddingUser] = useState(false);
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUser.username || !newUser.email) return;
+    
+    setIsAddingUser(true);
+    try {
+      // Use provided UID or create a dummy one for manually added users
+      const finalUid = newUser.uid.trim() || 'manual_' + Math.random().toString(36).substring(2, 15);
+      await setDoc(doc(db, 'users', finalUid), {
+        username: newUser.username,
+        email: newUser.email,
+        balance: newUser.balance,
+        role: 'user',
+        totalSpent: 0,
+        createdAt: serverTimestamp(),
+        uid: finalUid
+      });
+      setNewUser({ username: '', email: '', balance: 0, uid: '' });
+      showToast("User profile created successfully!", "success");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'users');
+    } finally {
+      setIsAddingUser(false);
+    }
+  };
+
+  const handleBulkAddFunds = async () => {
+    const amountStr = window.prompt("Enter amount to add to ALL users:");
+    if (!amountStr) return;
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount)) return;
+
+    if (window.confirm(`Are you sure you want to add $${amount.toFixed(2)} to ALL ${users.length} users?`)) {
+      showToast(`Adding funds to ${users.length} users...`, "success");
+      let successCount = 0;
+      for (const u of users) {
+        try {
+          await updateUserBalance(u.id, (u.balance || 0) + amount, amount);
+          successCount++;
+        } catch (err) {
+          console.error(`Failed to update balance for user ${u.id}`, err);
+        }
+      }
+      showToast(`Successfully added funds to ${successCount} users!`, "success");
+    }
+  };
 
   const filteredOrders = orders.filter(o => 
     o.id.toLowerCase().includes(orderSearch.toLowerCase()) || 
@@ -1539,34 +1712,79 @@ const AdminDashboard = ({
     }
   };
 
-  const handleDeleteService = async (id: number) => {
+  const handleDeleteService = async (id: string | number) => {
     console.log("Attempting to delete service:", id);
     if (window.confirm('Are you sure you want to delete this service?')) {
       try {
         await deleteDoc(doc(db, 'services', id.toString()));
+        showToast('Service deleted successfully!', 'success');
       } catch (error) {
         handleFirestoreError(error, OperationType.DELETE, `services/${id}`);
       }
     }
   };
 
-  const [editingRates, setEditingRates] = useState<{[key: number]: string}>({});
+  const [editingServiceId, setEditingServiceId] = useState<string | number | null>(null);
+  const [editingServiceData, setEditingServiceData] = useState<Partial<Service>>({});
 
-  const updateServiceRate = async (serviceId: number, newRate: string) => {
-    if (!newRate) return;
-    console.log("Attempting to update service rate:", { serviceId, newRate });
-    const formattedRate = newRate.startsWith('$') ? newRate : `$${newRate}`;
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingUserData, setEditingUserData] = useState<any>({});
+
+  const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null);
+  const [editingUpdateData, setEditingUpdateData] = useState<any>({});
+
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  const [editingOrderData, setEditingOrderData] = useState<any>({});
+
+  const updateService = async (serviceId: string | number) => {
+    if (!editingServiceData.rate && !editingServiceData.name) return;
+    console.log("Attempting to update service:", { serviceId, editingServiceData });
+    
+    const updates: any = { ...editingServiceData };
+    if (updates.rate && !updates.rate.startsWith('$')) {
+      updates.rate = `$${updates.rate}`;
+    }
+
     try {
-      await updateDoc(doc(db, 'services', serviceId.toString()), { rate: formattedRate });
-      showToast('Price updated successfully!', 'success');
-      // Clear editing state for this service
-      setEditingRates(prev => {
-        const next = { ...prev };
-        delete next[serviceId];
-        return next;
-      });
+      await updateDoc(doc(db, 'services', serviceId.toString()), updates);
+      showToast('Service updated successfully!', 'success');
+      setEditingServiceId(null);
+      setEditingServiceData({});
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `services/${serviceId}`);
+    }
+  };
+
+  const updateUser = async (userId: string) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), editingUserData);
+      showToast('User updated successfully!', 'success');
+      setEditingUserId(null);
+      setEditingUserData({});
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+    }
+  };
+
+  const updateUpdate = async (updateId: string) => {
+    try {
+      await updateDoc(doc(db, 'updates', updateId), editingUpdateData);
+      showToast('Update modified successfully!', 'success');
+      setEditingUpdateId(null);
+      setEditingUpdateData({});
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `updates/${updateId}`);
+    }
+  };
+
+  const updateOrder = async (orderId: string) => {
+    try {
+      await updateDoc(doc(db, 'orders', orderId), editingOrderData);
+      showToast('Order updated successfully!', 'success');
+      setEditingOrderId(null);
+      setEditingOrderData({});
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `orders/${orderId}`);
     }
   };
 
@@ -1678,7 +1896,7 @@ const AdminDashboard = ({
   };
 
   const handleDeleteRefill = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this refill request?')) {
+    if (window.confirm('Are you sure you want to delete this refill?')) {
       try {
         await deleteDoc(doc(db, 'refills', id));
       } catch (error) {
@@ -1686,6 +1904,74 @@ const AdminDashboard = ({
       }
     }
   };
+
+  const handleDeleteSubscription = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this subscription?')) {
+      try {
+        await deleteDoc(doc(db, 'subscriptions', id));
+        showToast('Subscription deleted successfully!', 'success');
+      } catch (error) {
+        handleFirestoreError(error, OperationType.DELETE, `subscriptions/${id}`);
+      }
+    }
+  };
+
+  const approveTransaction = async (txId: string, uid: string, amount: number) => {
+    console.log("Admin approving transaction:", { txId, uid, amount });
+    try {
+      // Find the transaction document by its 'id' field
+      const q = query(collection(db, 'transactions'), where('id', '==', txId));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        showToast('Transaction not found', 'error');
+        return;
+      }
+
+      const txDoc = querySnapshot.docs[0];
+      
+      // Update transaction status
+      await updateDoc(doc(db, 'transactions', txDoc.id), { status: 'Completed' });
+
+      // Update user balance
+      const userRef = doc(db, 'users', uid);
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        const currentBalance = Number(userDoc.data().balance) || 0;
+        await updateDoc(userRef, {
+          balance: parseFloat((currentBalance + amount).toFixed(4))
+        });
+      }
+
+      showToast(`Transaction ${txId} approved and $${amount} added to user balance!`, 'success');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `transactions`);
+    }
+  };
+
+  const rejectTransaction = async (txId: string) => {
+    console.log("Admin rejecting transaction:", { txId });
+    try {
+      const q = query(collection(db, 'transactions'), where('id', '==', txId));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        showToast('Transaction not found', 'error');
+        return;
+      }
+
+      const txDoc = querySnapshot.docs[0];
+      await updateDoc(doc(db, 'transactions', txDoc.id), { status: 'Rejected' });
+      showToast(`Transaction ${txId} rejected`, 'success');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `transactions`);
+    }
+  };
+
+  const filteredTransactions = transactions.filter(t => 
+    t.id?.toLowerCase().includes(transactionSearch.toLowerCase()) || 
+    t.uid?.toLowerCase().includes(transactionSearch.toLowerCase())
+  );
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -1757,6 +2043,12 @@ const AdminDashboard = ({
           >
             Updates
           </button>
+          <button 
+            onClick={() => setActiveTab('transactions')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'transactions' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+          >
+            Transactions
+          </button>
         </div>
       </div>
 
@@ -1767,7 +2059,15 @@ const AdminDashboard = ({
             <h4 className="text-3xl font-black text-smm-text-dark">{orders.length}</h4>
           </div>
           <div className="bg-white p-8 rounded-3xl shadow-xl border-b-4 border-emerald-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Revenue</p>
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Revenue</p>
+              <button 
+                onClick={handleAddAdminFunds}
+                className="px-2 py-1 bg-blue-600 text-white text-[8px] font-black uppercase rounded hover:bg-blue-700 transition-colors"
+              >
+                Add $5000 to Me
+              </button>
+            </div>
             <h4 className="text-3xl font-black text-smm-text-dark">${totalRevenue}</h4>
           </div>
           <div className="bg-white p-8 rounded-3xl shadow-xl border-b-4 border-orange-500">
@@ -1922,9 +2222,34 @@ const AdminDashboard = ({
                   {filteredServices.map((s) => (
                     <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 font-bold">{s.id}</td>
-                      <td className="px-6 py-4 font-semibold">{s.name}</td>
                       <td className="px-6 py-4">
-                        <span className="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-600">{s.category || 'Other'}</span>
+                        {editingServiceId === s.id ? (
+                          <input 
+                            type="text" 
+                            value={editingServiceData.name ?? s.name}
+                            onChange={(e) => setEditingServiceData(prev => ({ ...prev, name: e.target.value }))}
+                            className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500/20"
+                          />
+                        ) : (
+                          <span className="font-semibold">{s.name}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {editingServiceId === s.id ? (
+                          <select 
+                            value={editingServiceData.category ?? s.category}
+                            onChange={(e) => setEditingServiceData(prev => ({ ...prev, category: e.target.value }))}
+                            className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] font-bold outline-none focus:ring-2 focus:ring-blue-500/20"
+                          >
+                            <option value="Instagram Followers">Instagram Followers</option>
+                            <option value="TikTok Followers">TikTok Followers</option>
+                            <option value="YouTube Views">YouTube Views</option>
+                            <option value="Facebook Likes">Facebook Likes</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        ) : (
+                          <span className="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-600">{s.category || 'Other'}</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
@@ -1932,36 +2257,90 @@ const AdminDashboard = ({
                             <span className="absolute left-2 text-slate-400 font-bold">$</span>
                             <input 
                               type="text" 
-                              value={editingRates[s.id] !== undefined ? editingRates[s.id] : s.rate.replace('$', '')}
+                              value={editingServiceId === s.id ? (editingServiceData.rate ?? s.rate.replace('$', '')) : s.rate.replace('$', '')}
+                              readOnly={editingServiceId !== s.id}
                               onChange={(e) => {
-                                setEditingRates(prev => ({
-                                  ...prev,
-                                  [s.id]: e.target.value
-                                }));
+                                if (editingServiceId === s.id) {
+                                  setEditingServiceData(prev => ({ ...prev, rate: e.target.value }));
+                                }
                               }}
-                              className="w-24 pl-5 pr-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500/20"
+                              className={`w-24 pl-5 pr-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500/20 ${editingServiceId !== s.id ? 'cursor-default' : ''}`}
                             />
                           </div>
-                          <button 
-                            onClick={() => {
-                              const val = editingRates[s.id] !== undefined ? editingRates[s.id] : s.rate.replace('$', '');
-                              updateServiceRate(s.id, val);
-                            }}
-                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
-                            title="Save Price"
-                          >
-                            <CheckCircle2 size={14} />
-                          </button>
                         </div>
                       </td>
-                      <td className="px-6 py-4">{s.min} / {s.max}</td>
+                      <td className="px-6 py-4">
+                        {editingServiceId === s.id ? (
+                          <div className="flex gap-2">
+                            <input 
+                              type="number" 
+                              value={editingServiceData.min ?? s.min}
+                              onChange={(e) => setEditingServiceData(prev => ({ ...prev, min: parseInt(e.target.value) }))}
+                              className="w-16 px-1 py-1 bg-slate-50 border border-slate-200 rounded text-xs outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <span className="text-slate-400">/</span>
+                            <input 
+                              type="number" 
+                              value={editingServiceData.max ?? s.max}
+                              onChange={(e) => setEditingServiceData(prev => ({ ...prev, max: parseInt(e.target.value) }))}
+                              className="w-20 px-1 py-1 bg-slate-50 border border-slate-200 rounded text-xs outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                          </div>
+                        ) : (
+                          <span>{s.min} / {s.max}</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={() => handleDeleteService(s.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          {editingServiceId === s.id ? (
+                            <>
+                              <button 
+                                onClick={() => updateService(s.id)}
+                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                title="Save Changes"
+                              >
+                                <CheckCircle2 size={18} />
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setEditingServiceId(null);
+                                  setEditingServiceData({});
+                                }}
+                                className="p-2 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors"
+                                title="Cancel"
+                              >
+                                <X size={18} />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button 
+                                onClick={() => {
+                                  setEditingServiceId(s.id);
+                                  setEditingServiceData({
+                                    name: s.name,
+                                    rate: s.rate.replace('$', ''),
+                                    min: s.min,
+                                    max: s.max,
+                                    category: s.category,
+                                    description: s.description
+                                  });
+                                }}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit Service"
+                              >
+                                <Settings size={18} />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteService(s.id)}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete Service"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -2015,22 +2394,67 @@ const AdminDashboard = ({
                     <tr key={o.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">{o.id}</td>
                       <td className="px-6 py-4 truncate max-w-[200px]">{o.service}</td>
-                      <td className="px-6 py-4 font-bold text-blue-600">${o.charge}</td>
+                      <td className="px-6 py-4 font-bold text-blue-600">
+                        {editingOrderId === o.id ? (
+                          <input 
+                            type="text" 
+                            value={editingOrderData.charge || ''} 
+                            onChange={(e) => setEditingOrderData({...editingOrderData, charge: e.target.value})}
+                            className="w-20 px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                          />
+                        ) : (
+                          `$${o.charge}`
+                        )}
+                      </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${
-                          o.status === 'Completed' ? 'bg-emerald-100 text-emerald-600' : 
-                          o.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
-                          o.status === 'Canceled' ? 'bg-red-100 text-red-600' :
-                          'bg-blue-100 text-blue-600'
-                        }`}>
-                          {o.status}
-                        </span>
+                        {editingOrderId === o.id ? (
+                          <select 
+                            value={editingOrderData.status || ''} 
+                            onChange={(e) => setEditingOrderData({...editingOrderData, status: e.target.value})}
+                            className="px-2 py-1 bg-white border border-slate-200 rounded text-[10px]"
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="In progress">In progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Canceled">Canceled</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Processing">Processing</option>
+                          </select>
+                        ) : (
+                          <span className={`px-2 py-1 rounded text-[10px] font-bold ${
+                            o.status === 'Completed' ? 'bg-emerald-100 text-emerald-600' : 
+                            o.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
+                            o.status === 'Canceled' ? 'bg-red-100 text-red-600' :
+                            'bg-blue-100 text-blue-600'
+                          }`}>
+                            {o.status}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
-                        <button onClick={() => updateOrderStatus(o.id, 'Completed')} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Complete"><CheckCircle2 size={16} /></button>
-                        <button onClick={() => updateOrderStatus(o.id, 'Pending')} className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg" title="Pending"><Clock size={16} /></button>
-                        <button onClick={() => updateOrderStatus(o.id, 'Canceled')} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Cancel"><XCircle size={16} /></button>
-                        <button onClick={() => handleDeleteOrder(o.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="Delete"><Trash2 size={16} /></button>
+                        {editingOrderId === o.id ? (
+                          <>
+                            <button onClick={() => updateOrder(o.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Save"><CheckCircle2 size={16} /></button>
+                            <button onClick={() => { setEditingOrderId(null); setEditingOrderData({}); }} className="p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg" title="Cancel"><X size={16} /></button>
+                          </>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={() => {
+                                setEditingOrderId(o.id);
+                                setEditingOrderData({ charge: o.charge, status: o.status });
+                              }} 
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" 
+                              title="Edit"
+                            >
+                              <Settings size={16} />
+                            </button>
+                            <button onClick={() => updateOrderStatus(o.id, 'Completed')} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Complete"><CheckCircle2 size={16} /></button>
+                            <button onClick={() => updateOrderStatus(o.id, 'Pending')} className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg" title="Pending"><Clock size={16} /></button>
+                            <button onClick={() => updateOrderStatus(o.id, 'Canceled')} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Cancel"><XCircle size={16} /></button>
+                            <button onClick={() => handleDeleteOrder(o.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="Delete"><Trash2 size={16} /></button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -2159,123 +2583,276 @@ const AdminDashboard = ({
       )}
 
       {activeTab === 'users' && (
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h3 className="text-smm-text-dark font-bold">Manage Users ({filteredUsers.length})</h3>
-            <div className="flex items-center gap-2 w-full sm:max-w-xs">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                <input 
-                  type="text" 
-                  placeholder="Search users..." 
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
-                />
+        <div className="space-y-6">
+          <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6">
+            <div className="flex gap-4">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-200">
+                <AlertCircle size={24} />
               </div>
-              <button 
-                onClick={() => {
-                  const input = document.querySelector('input[placeholder="Search users..."]') as HTMLInputElement;
-                  if (input) input.focus();
-                }}
-                className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <Search size={18} />
-              </button>
+              <div>
+                <h4 className="text-lg font-black text-blue-900 mb-1 uppercase tracking-tight">Why are some users missing?</h4>
+                <p className="text-sm text-blue-700 leading-relaxed font-medium">
+                  Users only appear in this list once they have a <span className="font-bold underline">Firestore profile</span>. 
+                  Profiles are created automatically when a user logs in for the first time. 
+                  If you see a user in the <span className="font-bold">Firebase Console (Authentication)</span> but not here, it's because they haven't logged into the app yet. 
+                  You can manually create their profile below using their <span className="font-bold">UID</span> from the Firebase Console if you need to set their balance before they log in.
+                </p>
+              </div>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                  <th className="px-6 py-4">User</th>
-                  <th className="px-6 py-4">Email</th>
-                  <th className="px-6 py-4">Balance</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
-                {filteredUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-bold">{u.username}</td>
-                    <td className="px-6 py-4 text-slate-500">{u.email}</td>
-                    <td className="px-6 py-4 font-black text-blue-600">${(u.balance || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end items-center gap-2">
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="text-[8px] text-slate-400 uppercase font-black">Add Funds</span>
-                          <div className="flex items-center gap-1">
+
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-smm-text-dark font-black uppercase tracking-widest text-sm">Add New User Profile</h3>
+              <div className="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full">
+                <ShieldCheck size={14} className="text-blue-600" />
+                <span className="text-[10px] font-black text-slate-500 uppercase">Admin Mode Active</span>
+              </div>
+            </div>
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Username</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. John Doe" 
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 font-bold"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Email Address</label>
+                  <input 
+                    type="email" 
+                    placeholder="john@example.com" 
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 font-bold"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Initial Balance ($)</label>
+                  <input 
+                    type="number" 
+                    placeholder="0.00" 
+                    value={newUser.balance}
+                    onChange={(e) => setNewUser({...newUser, balance: parseFloat(e.target.value) || 0})}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 font-bold"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Firebase UID (Optional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Paste UID from Console" 
+                    value={newUser.uid}
+                    onChange={(e) => setNewUser({...newUser, uid: e.target.value})}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 font-mono text-[10px]"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button 
+                  type="submit" 
+                  disabled={isAddingUser}
+                  className="px-8 py-3 bg-blue-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isAddingUser ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={18} />
+                      Create User Profile
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
+                <h3 className="text-smm-text-dark font-bold">Manage Users ({filteredUsers.length})</h3>
+                <button 
+                  onClick={handleBulkAddFunds}
+                  className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-emerald-200 transition-colors"
+                >
+                  Bulk Add Funds
+                </button>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:max-w-xs">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Search users..." 
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                    <th className="px-6 py-4">User</th>
+                    <th className="px-6 py-4">Email</th>
+                    <th className="px-6 py-4">Balance</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
+                  {filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-10 text-center text-slate-400 font-medium">
+                        No users found. Try adjusting your search or add a new user.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredUsers.map((u) => (
+                      <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4 font-bold">
+                          {editingUserId === u.id ? (
+                            <input 
+                              type="text" 
+                              value={editingUserData.username || ''} 
+                              onChange={(e) => setEditingUserData({...editingUserData, username: e.target.value})}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                            />
+                          ) : (
+                            u.username
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500">
+                          {editingUserId === u.id ? (
+                            <input 
+                              type="email" 
+                              value={editingUserData.email || ''} 
+                              onChange={(e) => setEditingUserData({...editingUserData, email: e.target.value})}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                            />
+                          ) : (
+                            u.email
+                          )}
+                        </td>
+                        <td className="px-6 py-4 font-black text-blue-600">
+                          {editingUserId === u.id ? (
                             <input 
                               type="number" 
-                              placeholder="Amount"
-                              className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none focus:ring-1 focus:ring-blue-500"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  const val = (e.target as HTMLInputElement).value;
-                                  if (val) {
-                                    const amount = parseFloat(val);
-                                    updateUserBalance(u.id, (u.balance || 0) + amount, amount);
-                                    (e.target as HTMLInputElement).value = '';
-                                  }
-                                }
-                              }}
+                              value={editingUserData.balance || 0} 
+                              onChange={(e) => setEditingUserData({...editingUserData, balance: parseFloat(e.target.value)})}
+                              className="w-24 px-2 py-1 bg-white border border-slate-200 rounded text-xs"
                             />
-                            <button 
-                              onClick={(e) => {
-                                const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                                const val = input.value;
-                                if (val) {
-                                  const amount = parseFloat(val);
-                                  updateUserBalance(u.id, (u.balance || 0) + amount, amount);
-                                  input.value = '';
-                                }
-                              }}
-                              className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
-                              title="Add Funds"
-                            >
-                              <Plus size={12} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="h-8 w-px bg-slate-100 mx-1" />
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="text-[8px] text-slate-400 uppercase font-black">Set Total</span>
-                          <div className="flex items-center gap-1">
-                            <input 
-                              type="number" 
-                              placeholder="New Total"
-                              className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none focus:ring-1 focus:ring-blue-500"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  const val = (e.target as HTMLInputElement).value;
-                                  if (val) {
-                                    updateUserBalance(u.id, parseFloat(val));
-                                    (e.target as HTMLInputElement).value = '';
-                                  }
-                                }
-                              }}
-                            />
-                            <button 
-                              onClick={(e) => {
-                                const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                                if (input.value) {
-                                  updateUserBalance(u.id, parseFloat(input.value));
-                                  input.value = '';
-                                }
-                              }}
-                              className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                              title="Set Balance"
-                            >
-                              <CheckCircle2 size={12} />
-                            </button>
-                          </div>
-                        </div>
+                          ) : (
+                            `$${(u.balance || 0).toFixed(2)}`
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end items-center gap-2">
+                            {editingUserId === u.id ? (
+                              <>
+                                <button onClick={() => updateUser(u.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Save"><CheckCircle2 size={16} /></button>
+                                <button onClick={() => { setEditingUserId(null); setEditingUserData({}); }} className="p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg" title="Cancel"><X size={16} /></button>
+                              </>
+                            ) : (
+                              <>
+                                <button 
+                                  onClick={() => {
+                                    setEditingUserId(u.id);
+                                    setEditingUserData({ username: u.username, email: u.email, balance: u.balance });
+                                  }} 
+                                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" 
+                                  title="Edit Profile"
+                                >
+                                  <Settings size={16} />
+                                </button>
+                                <div className="flex flex-col items-end gap-1">
+                                  <span className="text-[8px] text-slate-400 uppercase font-black">Add Funds</span>
+                                  <div className="flex items-center gap-1">
+                                    <input 
+                                      type="number" 
+                                      placeholder="Amount"
+                                      className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none focus:ring-1 focus:ring-blue-500"
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          const val = (e.target as HTMLInputElement).value;
+                                          if (val) {
+                                            const amount = parseFloat(val);
+                                            updateUserBalance(u.id, (u.balance || 0) + amount, amount);
+                                            (e.target as HTMLInputElement).value = '';
+                                          }
+                                        }
+                                      }}
+                                    />
+                                    <button 
+                                      onClick={(e) => {
+                                        const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                                        const val = input.value;
+                                        if (val) {
+                                          const amount = parseFloat(val);
+                                          updateUserBalance(u.id, (u.balance || 0) + amount, amount);
+                                          input.value = '';
+                                        }
+                                      }}
+                                      className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
+                                      title="Add Funds"
+                                    >
+                                      <Plus size={12} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="h-8 w-px bg-slate-100 mx-1" />
+                                <div className="flex flex-col items-end gap-1">
+                                  <span className="text-[8px] text-slate-400 uppercase font-black">Set Total</span>
+                                  <div className="flex items-center gap-1">
+                                    <input 
+                                      type="number" 
+                                      placeholder="New Total"
+                                  className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] outline-none focus:ring-1 focus:ring-blue-500"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const val = (e.target as HTMLInputElement).value;
+                                      if (val) {
+                                        updateUserBalance(u.id, parseFloat(val));
+                                        (e.target as HTMLInputElement).value = '';
+                                      }
+                                    }
+                                  }}
+                                />
+                                <button 
+                                  onClick={(e) => {
+                                    const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                                    if (input.value) {
+                                      updateUserBalance(u.id, parseFloat(input.value));
+                                      input.value = '';
+                                    }
+                                  }}
+                                  className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                  title="Set Balance"
+                                >
+                                  <CheckCircle2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -2311,7 +2888,7 @@ const AdminDashboard = ({
                         {s.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right flex justify-end gap-2">
                       <select 
                         className="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[10px]"
                         value={s.status}
@@ -2323,6 +2900,13 @@ const AdminDashboard = ({
                         <option value="Canceled">Canceled</option>
                         <option value="Expired">Expired</option>
                       </select>
+                      <button 
+                        onClick={() => handleDeleteSubscription(s.id)}
+                        className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Delete Subscription"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -2401,29 +2985,67 @@ const AdminDashboard = ({
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <span className="bg-slate-200 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0">{u.id}</span>
-                          <span className="font-semibold">{u.service}</span>
+                          {editingUpdateId === u.id ? (
+                            <input 
+                              type="text" 
+                              value={editingUpdateData.service || ''} 
+                              onChange={(e) => setEditingUpdateData({...editingUpdateData, service: e.target.value})}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                            />
+                          ) : (
+                            <span className="font-semibold">{u.service}</span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {u.createdAt instanceof Timestamp ? u.createdAt.toDate().toLocaleDateString() : u.date || 'N/A'}
                       </td>
-                      <td className="px-6 py-4">{u.update}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={async () => {
-                            if (window.confirm('Delete this update?')) {
-                              try {
-                                await deleteDoc(doc(db, 'updates', u.id));
-                                showToast('Update deleted', 'success');
-                              } catch (error) {
-                                handleFirestoreError(error, OperationType.DELETE, `updates/${u.id}`);
-                              }
-                            }
-                          }}
-                          className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                      <td className="px-6 py-4">
+                        {editingUpdateId === u.id ? (
+                          <textarea 
+                            value={editingUpdateData.update || ''} 
+                            onChange={(e) => setEditingUpdateData({...editingUpdateData, update: e.target.value})}
+                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs min-h-[60px]"
+                          />
+                        ) : (
+                          u.update
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
+                        {editingUpdateId === u.id ? (
+                          <>
+                            <button onClick={() => updateUpdate(u.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Save"><CheckCircle2 size={16} /></button>
+                            <button onClick={() => { setEditingUpdateId(null); setEditingUpdateData({}); }} className="p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg" title="Cancel"><X size={16} /></button>
+                          </>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={() => {
+                                setEditingUpdateId(u.id);
+                                setEditingUpdateData({ service: u.service, update: u.update });
+                              }} 
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" 
+                              title="Edit Update"
+                            >
+                              <Settings size={16} />
+                            </button>
+                            <button 
+                              onClick={async () => {
+                                if (window.confirm('Delete this update?')) {
+                                  try {
+                                    await deleteDoc(doc(db, 'updates', u.id));
+                                    showToast('Update deleted', 'success');
+                                  } catch (error) {
+                                    handleFirestoreError(error, OperationType.DELETE, `updates/${u.id}`);
+                                  }
+                                }
+                              }}
+                              className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -2433,11 +3055,112 @@ const AdminDashboard = ({
           </div>
         </div>
       )}
+
+      {activeTab === 'transactions' && (
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h3 className="text-smm-text-dark font-bold">Manage Transactions ({filteredTransactions.length})</h3>
+            <div className="flex items-center gap-2 w-full sm:max-w-xs">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search transactions..." 
+                  value={transactionSearch}
+                  onChange={(e) => setTransactionSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+                />
+              </div>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                  <th className="px-6 py-4">TX ID / UTR</th>
+                  <th className="px-6 py-4">User ID</th>
+                  <th className="px-6 py-4">Amount</th>
+                  <th className="px-6 py-4">Method</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-smm-text-dark text-xs font-medium">
+                {filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((t) => (
+                    <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 font-bold">{t.id}</td>
+                      <td className="px-6 py-4 text-[10px] font-bold text-slate-500">{t.uid}</td>
+                      <td className="px-6 py-4 font-black text-blue-600">${t.amount}</td>
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-600 uppercase tracking-widest">{t.method}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${
+                          t.status === 'Completed' ? 'bg-emerald-100 text-emerald-600' : 
+                          t.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
+                          'bg-red-100 text-red-600'
+                        }`}>
+                          {t.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
+                        {t.status === 'Pending' && (
+                          <>
+                            <button 
+                              onClick={() => approveTransaction(t.id, t.uid, t.amount)} 
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" 
+                              title="Approve"
+                            >
+                              <CheckCircle2 size={16} />
+                            </button>
+                            <button 
+                              onClick={() => rejectTransaction(t.id)} 
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" 
+                              title="Reject"
+                            >
+                              <XCircle size={16} />
+                            </button>
+                          </>
+                        )}
+                        <button 
+                          onClick={async () => {
+                            if (window.confirm('Delete this transaction record?')) {
+                              try {
+                                const q = query(collection(db, 'transactions'), where('id', '==', t.id));
+                                const querySnapshot = await getDocs(q);
+                                if (!querySnapshot.empty) {
+                                  await deleteDoc(doc(db, 'transactions', querySnapshot.docs[0].id));
+                                  showToast('Transaction deleted', 'success');
+                                }
+                              } catch (error) {
+                                handleFirestoreError(error, OperationType.DELETE, `transactions`);
+                              }
+                            }
+                          }} 
+                          className="p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg" 
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">No transactions found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const LoginPanel = ({ onLogin, showToast }: { onLogin: () => void, showToast: (msg: string, type: 'success' | 'error') => void }) => {
+const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, showToast: (msg: string, type: 'success' | 'error') => void, services: Service[] }) => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -2463,134 +3186,509 @@ const LoginPanel = ({ onLogin, showToast }: { onLogin: () => void, showToast: (m
       if (error.code === 'auth/email-already-in-use') msg = "Email already in use.";
       if (error.code === 'auth/weak-password') msg = "Password should be at least 6 characters.";
       if (error.code === 'auth/invalid-email') msg = "Invalid email address.";
-      if (error.code === 'auth/operation-not-allowed') msg = "Email/Password login is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.";
-      if (error.code === 'auth/unauthorized-domain') {
-        msg = "This domain is not authorized. Please add these to 'Authorized domains' in Firebase Console: " + 
-              window.location.hostname + ", lombardiservice.netlify.app";
-      }
       showToast(msg, 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const steps = [
+    { icon: <User size={24} />, title: "Sign up", desc: "Register into our panel, fill in all the necessary data and get ready to be famous." },
+    { icon: <Wallet size={24} />, title: "Add funds", desc: "Add money to your SMM account and be ready to rise like a star and give your business a new height." },
+    { icon: <ShoppingCart size={24} />, title: "Choose service", desc: "Select a service and place an order and get ready to start receiving more publicity on social media." },
+    { icon: <CheckCircle2 size={24} />, title: "Enjoy popularity", desc: "We will create and proceed with an order and inform you once done. Enjoy and stay with us." }
+  ];
+
+  const features = [
+    { icon: <ShieldCheck size={24} />, title: "Great quality", desc: "The quality of our SMM services will pleasantly surprise you." },
+    { icon: <CreditCard size={24} />, title: "Multiple payment systems", desc: "Great variety of payment methods for you to choose from." },
+    { icon: <Bitcoin size={24} />, title: "Really cheap", desc: "SMM services that we offer on our panel are extremely cheap." },
+    { icon: <Clock size={24} />, title: "Extra quick delivery", desc: "Customer orders on our panel are processed very fast." }
+  ];
+
+  const faqs = [
+    { q: "SMM SERVICES — what is it?", a: "SMM SERVICES is an online store that sells various social media marketing services." },
+    { q: "What kinds of services can I buy here?", a: "On our panel you can find different social media services: followers, likes, views, etc." },
+    { q: "Is it safe to buy services on this panel?", a: "Sure! Our services are safe to use, you won't get banned or anything like that." },
+    { q: "What is the mass order feature for?", a: "Using mass orders, it's easy to place several orders with different links at the same time." }
+  ];
+
+  const reviews = [
+    { name: "Roberto Santos", text: "SMM SERVICES I got here did exactly what I expected them to do — they helped my business get more attention and increased my sales. Thank you!" },
+    { name: "Brian Delaney", text: "This SMM SERVICES panel is incredible! All services are so cheap and yet their quality doesn't disappoint. I'm now your regular customer." },
+    { name: "Adam Lim", text: "Using this panel helped me save a TON on social media services. I was just a beginner small business owner so I didn't have lots of money to spend on professional online promos." }
+  ];
+
+  const [showPublicServices, setShowPublicServices] = useState(false);
+
+  const stats = [
+    { label: "Total Orders", value: "1.2M+" },
+    { label: "Happy Clients", value: "50K+" },
+    { label: "Services", value: "1.5K+" },
+    { label: "Support", value: "24/7" }
+  ];
+
+  const sampleServices = [
+    { title: "Instagram Followers", price: "$0.05", icon: <Instagram size={20} />, color: "#ec4899" },
+    { title: "TikTok Followers", price: "$0.12", icon: <Music size={20} />, color: "#10b981" },
+    { title: "YouTube Views", price: "$0.85", icon: <Youtube size={20} />, color: "#ef4444" },
+    { title: "Facebook Likes", price: "$0.25", icon: <Facebook size={20} />, color: "#1d4ed8" }
+  ];
+
+  if (showPublicServices) {
+    return (
+      <div className="min-h-screen bg-white text-slate-900">
+        <nav className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-md z-50 border-b border-slate-100">
+          <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setShowPublicServices(false)}>
+              <div className="w-10 h-10">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-blue-600 fill-current">
+                  <path d="M50 10 C30 10 10 30 10 50 C10 70 30 90 50 90 C70 90 90 70 90 50 C90 30 70 10 50 10 Z M50 20 C65 20 75 30 75 45 C75 60 65 70 50 70 C35 70 25 60 25 45 C25 30 35 20 50 20 Z" />
+                  <path d="M45 40 L55 40 L50 50 Z" />
+                </svg>
+              </div>
+              <span className="font-black text-xl tracking-tighter">LOMBARDI<span className="text-blue-600">SMM</span></span>
+            </div>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setShowPublicServices(false)} className="text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-blue-600">Back to Home</button>
+              <button onClick={() => { setShowPublicServices(false); setIsRegistering(true); }} className="bg-blue-600 text-white px-6 py-2.5 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">Sign up</button>
+            </div>
+          </div>
+        </nav>
+        <div className="pt-32 pb-20 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h1 className="text-4xl font-black tracking-tighter uppercase mb-4">Our Services</h1>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Browse our full list of high-quality Lombardi Services</p>
+            </div>
+            <Services services={services} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-smm-bg flex items-center justify-center p-6">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md bg-white rounded-[2.5rem] p-10 shadow-2xl"
-      >
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-20 h-20 mb-4">
-            <svg viewBox="0 0 100 100" className="w-full h-full text-orange-500 fill-current">
-              <path d="M50 10 C30 10 10 30 10 50 C10 70 30 90 50 90 C70 90 90 70 90 50 C90 30 70 10 50 10 Z M50 20 C65 20 75 30 75 45 C75 60 65 70 50 70 C35 70 25 60 25 45 C25 30 35 20 50 20 Z" />
-              <path d="M45 40 L55 40 L50 50 Z" />
-            </svg>
+    <div className="min-h-screen bg-white text-slate-900">
+      {/* Top Bar */}
+      <div className="hidden lg:block bg-slate-900 text-white py-2 text-[10px] font-black uppercase tracking-[0.2em]">
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+          <div className="flex items-center gap-6">
+            <span className="flex items-center gap-2"><Mail size={12} className="text-blue-500" /> support@lombardismm.com</span>
+            <span className="flex items-center gap-2"><MessageCircle size={12} className="text-emerald-500" /> +91 9999999999</span>
           </div>
-          <h1 className="text-smm-text-dark font-black text-3xl tracking-tighter uppercase">LOMBARDI SMM</h1>
-          <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mt-1">v4.1 - ENHANCED AUTH FLOW</p>
-          <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-2">{isRegistering ? 'Create an account' : 'Welcome back'}</p>
+          <div className="flex items-center gap-4">
+            <span>SMM SERVICES IS THE CHEAPEST SERVICES IN THE WORLD</span>
+            <div className="w-px h-3 bg-white/20" />
+            <span>24/7 SUPPORT AVAILABLE</span>
+          </div>
         </div>
+      </div>
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
-                required
-              />
+      {/* Navbar */}
+      <nav className="fixed top-0 lg:top-8 left-0 right-0 h-20 bg-white/80 backdrop-blur-md z-50 border-b border-slate-100 lg:mx-6 lg:rounded-2xl lg:shadow-xl lg:border-none">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10">
+              <svg viewBox="0 0 100 100" className="w-full h-full text-blue-600 fill-current">
+                <path d="M50 10 C30 10 10 30 10 50 C10 70 30 90 50 90 C70 90 90 70 90 50 C90 30 70 10 50 10 Z M50 20 C65 20 75 30 75 45 C75 60 65 70 50 70 C35 70 25 60 25 45 C25 30 35 20 50 20 Z" />
+                <path d="M45 40 L55 40 L50 50 Z" />
+              </svg>
+            </div>
+            <span className="font-black text-xl tracking-tighter">LOMBARDI<span className="text-blue-600">SMM</span></span>
+          </div>
+          <div className="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-slate-500">
+            <a href="#services" className="hover:text-blue-600 transition-colors">Services</a>
+            <a href="#faq" className="hover:text-blue-600 transition-colors">FAQ</a>
+            <a href="#reviews" className="hover:text-blue-600 transition-colors">Reviews</a>
+            <a href="#contact" className="hover:text-blue-600 transition-colors">Contact</a>
+          </div>
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsRegistering(false)} className="text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-blue-600">Sign in</button>
+            <button onClick={() => setIsRegistering(true)} className="bg-blue-600 text-white px-6 py-2.5 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">Sign up</button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="pt-40 lg:pt-52 pb-20 px-6 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-8"
+          >
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
+              <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+              Official Main Provider Panel
+            </div>
+            <h1 className="text-6xl lg:text-8xl font-black tracking-tighter leading-[0.85]">
+              SMM <br />
+              <span className="text-blue-600">SERVICES</span> <br />
+              IS THE CHEAPEST
+            </h1>
+            <p className="text-slate-500 text-lg font-medium max-w-lg leading-relaxed">
+              SMM SERVICES IS THE CHEAPEST SERVICES IN THE WORLD. We provide high-quality services for Instagram, TikTok, YouTube, and more.
+            </p>
+            <ul className="grid sm:grid-cols-2 gap-4">
+              {["Main Supplier of SMM SERVICES", "WhatsApp Support ⚡", "We beat any price/any quality !", "Best Support in the market !"].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-sm font-bold text-slate-600 uppercase tracking-tight">
+                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="text-white" size={12} />
+                  </div>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
+              <button onClick={() => setIsRegistering(true)} className="w-full sm:w-auto bg-blue-600 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 hover:-translate-y-1">Get Started Now</button>
+              <button onClick={() => setShowPublicServices(true)} className="w-full sm:w-auto bg-white text-slate-600 px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-50 transition-all text-center border border-slate-200 shadow-sm">View Services</button>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-[2.5rem] p-10 shadow-2xl border border-slate-100 relative"
+          >
+            <div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white font-black text-xs uppercase tracking-widest rotate-12 shadow-xl">
+              Cheap<br/>Prices
+            </div>
+            <div className="mb-8">
+              <h2 className="text-2xl font-black tracking-tighter uppercase">{isRegistering ? 'Create Account' : 'Sign In'}</h2>
+              <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1">Access the best Lombardi Services</p>
+            </div>
+
+            <form onSubmit={handleAuth} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20" 
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20" 
+                    required
+                  />
+                </div>
+              </div>
+              
+              <button 
+                type="submit"
+                disabled={loading}
+                className="w-full py-5 bg-blue-600 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-3 mt-4"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  isRegistering ? 'Sign Up' : 'Sign In'
+                )}
+              </button>
+            </form>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-100"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase font-black tracking-widest">
+                <span className="bg-white px-4 text-slate-400">Or continue with</span>
+              </div>
+            </div>
+
+            <button 
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  await loginWithGoogle();
+                  onLogin();
+                } catch (error: any) {
+                  console.error("Google login failed", error);
+                  showToast(`Google login failed: ${error.message}`, 'error');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              className="w-full py-4 bg-white border-2 border-slate-100 text-slate-900 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              Google
+            </button>
+
+            <div className="mt-6 text-center">
+              <button 
+                onClick={() => setIsRegistering(!isRegistering)}
+                className="text-blue-600 text-xs font-bold uppercase tracking-widest hover:underline"
+              >
+                {isRegistering ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-8">
+          {stats.map((stat, i) => (
+            <div key={i} className="text-center">
+              <h3 className="text-4xl lg:text-5xl font-black text-blue-600 mb-2">{stat.value}</h3>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section id="services" className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black tracking-tighter uppercase mb-4">Our Best Services</h2>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Quality services at unbeatable prices</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {sampleServices.map((service, i) => (
+              <div key={i} className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 hover:scale-105 transition-transform">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ backgroundColor: `${service.color}15`, color: service.color }}>
+                  {service.icon}
+                </div>
+                <h3 className="font-black text-lg mb-2">{service.title}</h3>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-6">Starting from</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-black text-blue-600">{service.price}</span>
+                  <button onClick={() => setIsRegistering(true)} className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-blue-600">Order Now</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-12">
+            <button onClick={() => setShowPublicServices(true)} className="bg-slate-100 text-slate-600 px-10 py-4 rounded-full font-black uppercase tracking-widest hover:bg-slate-200 transition-all">View All 1500+ Services</button>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-24 bg-slate-50 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black tracking-tighter uppercase">How It Works?</h2>
+            <p className="text-slate-500 font-bold uppercase tracking-widest mt-2">Start boosting your social media in 4 simple steps</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { title: "Register Account", desc: "Create your account in seconds and join our community of successful resellers.", icon: <User size={24} /> },
+              { title: "Add Funds", desc: "Add funds to your balance using our secure payment methods like PayTM, UPI, or Crypto.", icon: <Wallet size={24} /> },
+              { title: "Select Service", desc: "Choose from over 1500+ high-quality services for all major social platforms.", icon: <ListOrdered size={24} /> },
+              { title: "Enjoy Results", desc: "Sit back and watch your social media presence grow with our lightning-fast delivery.", icon: <CheckCircle2 size={24} /> }
+            ].map((step, i) => (
+              <div key={i} className="bg-white p-10 rounded-[2.5rem] shadow-xl hover:-translate-y-2 transition-all border border-slate-100 group">
+                <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-blue-200 group-hover:scale-110 transition-transform">
+                  {step.icon}
+                </div>
+                <div className="text-blue-600 font-black text-xs uppercase tracking-widest mb-4">Step {i + 1}</div>
+                <h3 className="text-xl font-black tracking-tighter uppercase mb-4">{step.title}</h3>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us Section */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+          <div className="space-y-10">
+            <div>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tighter uppercase mb-6">Why Choose <span className="text-blue-600">SMM SERVICES?</span></h2>
+              <p className="text-slate-500 text-lg font-medium leading-relaxed">We are the #1 SMM SERVICES provider for resellers worldwide. Our platform is built for speed, reliability, and affordability.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-8">
+              {[
+                { title: "Cheapest Prices", desc: "We offer the lowest rates in the market, guaranteed.", icon: <CreditCard size={20} /> },
+                { title: "Lightning Fast", desc: "Most orders start instantly and complete within minutes.", icon: <Clock size={20} /> },
+                { title: "24/7 Support", desc: "Our dedicated support team is always here to help you.", icon: <MessageCircle size={20} /> },
+                { title: "Secure Payments", desc: "Your transactions are protected with top-tier security.", icon: <ShieldCheck size={20} /> }
+              ].map((feature, i) => (
+                <div key={i} className="flex gap-5">
+                  <div className="flex-shrink-0 w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-black text-sm uppercase tracking-widest mb-2">{feature.title}</h4>
+                    <p className="text-slate-500 text-xs font-medium leading-relaxed">{feature.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
-                required
-              />
+          <div className="relative">
+            <div className="bg-blue-600 rounded-[3.5rem] p-12 text-white space-y-8 relative overflow-hidden shadow-2xl shadow-blue-200">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
+              <h3 className="text-3xl font-black tracking-tighter uppercase leading-tight">The Most Trusted SMM SERVICES for Professionals</h3>
+              <p className="text-blue-100 text-lg leading-relaxed font-medium">
+                SMM SERVICES has been serving thousands of resellers for years. We understand the market and provide the tools you need to succeed in your social media marketing business.
+              </p>
+              <div className="flex items-center gap-6 pt-4">
+                <div className="text-center">
+                  <div className="text-3xl font-black">99.9%</div>
+                  <div className="text-[10px] uppercase font-black tracking-widest text-blue-200">Uptime</div>
+                </div>
+                <div className="w-px h-10 bg-white/20" />
+                <div className="text-center">
+                  <div className="text-3xl font-black">24/7</div>
+                  <div className="text-[10px] uppercase font-black tracking-widest text-blue-200">Support</div>
+                </div>
+                <div className="w-px h-10 bg-white/20" />
+                <div className="text-center">
+                  <div className="text-3xl font-black">1.2M+</div>
+                  <div className="text-[10px] uppercase font-black tracking-widest text-blue-200">Orders</div>
+                </div>
+              </div>
+              <button onClick={() => setIsRegistering(true)} className="bg-white text-blue-600 px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg">Join Us Today</button>
             </div>
           </div>
-          
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full py-5 bg-blue-600 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-3 mt-4"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              isRegistering ? 'Sign Up' : 'Sign In'
-            )}
-          </button>
-        </form>
+        </div>
+      </section>
 
-        <div className="relative my-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-100"></div>
+      {/* Reviews Section */}
+      <section className="py-24 bg-slate-900 text-white px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black tracking-tighter uppercase">Customer Reviews</h2>
+            <p className="text-blue-400 font-bold uppercase tracking-widest mt-2">What our clients say about us</p>
           </div>
-          <div className="relative flex justify-center text-xs uppercase font-black tracking-widest">
-            <span className="bg-white px-4 text-slate-400">Or continue with</span>
+          <div className="grid md:grid-cols-3 gap-8">
+            {reviews.map((review, i) => (
+              <div key={i} className="bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-sm">
+                <div className="flex gap-1 mb-6">
+                  {[...Array(5)].map((_, i) => <CheckCircle2 key={i} size={16} className="text-blue-500" />)}
+                </div>
+                <p className="text-slate-300 italic mb-6 leading-relaxed">"{review.text}"</p>
+                <h4 className="font-black text-sm uppercase tracking-widest text-blue-400">{review.name}</h4>
+              </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        <button 
-          onClick={async () => {
-            setLoading(true);
-            try {
-              await loginWithGoogle();
-              onLogin();
-            } catch (error: any) {
-              console.error("Google login failed", error);
-              let msg = `Google login failed: ${error.code || error.message}`;
-              if (error.code === 'auth/popup-blocked') msg = "Popup blocked. Please allow popups for this site.";
-              if (error.code === 'auth/unauthorized-domain') {
-                msg = "This domain is not authorized. Please add these to 'Authorized domains' in Firebase Console: " + 
-                      window.location.hostname + ", lombardiservice.netlify.app";
-              }
-              showToast(msg, 'error');
-            } finally {
-              setLoading(false);
-            }
-          }}
-          disabled={loading}
-          className="w-full py-4 bg-white border-2 border-slate-100 text-smm-text-dark font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3"
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Google
-        </button>
-
-        <div className="mt-6 text-center">
-          <button 
-            onClick={() => setIsRegistering(!isRegistering)}
-            className="text-blue-600 text-xs font-bold uppercase tracking-widest hover:underline"
-          >
-            {isRegistering ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-          </button>
+      {/* FAQ Section */}
+      <section className="py-24 px-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black tracking-tighter uppercase">FAQ</h2>
+            <p className="text-slate-500 font-bold uppercase tracking-widest mt-2">Common questions answered</p>
+          </div>
+          <div className="space-y-4">
+            {faqs.map((faq, i) => (
+              <details key={i} className="group bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
+                <summary className="flex items-center justify-between p-6 cursor-pointer list-none font-black text-sm uppercase tracking-widest">
+                  {faq.q}
+                  <ChevronDown className="group-open:rotate-180 transition-transform text-blue-600" size={20} />
+                </summary>
+                <div className="px-6 pb-6 text-slate-500 text-sm font-medium leading-relaxed">
+                  {faq.a}
+                </div>
+              </details>
+            ))}
+          </div>
         </div>
+      </section>
 
-        <div className="mt-8 text-center">
-          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-            By signing in, you agree to our Terms of Service
-          </p>
+      {/* Contact Section */}
+      <section id="contact" className="py-24 bg-slate-50 px-6">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <h2 className="text-4xl font-black tracking-tighter uppercase">Get In Touch</h2>
+            <p className="text-slate-500 text-lg font-medium">Have questions? Our support team is available 24/7 to help you with any issues or queries.</p>
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center">
+                  <Mail size={24} />
+                </div>
+                <div>
+                  <h4 className="font-black text-sm uppercase tracking-widest mb-1">Email Support</h4>
+                  <p className="text-slate-500 text-sm font-medium">shaikhmubasshir875@gmail.com</p>
+                </div>
+              </div>
+              <a href="https://wa.me/message/XRM6CMEHIU5EP1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 hover:bg-slate-50 p-2 rounded-2xl transition-colors">
+                <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center">
+                  <MessageCircle size={24} />
+                </div>
+                <div>
+                  <h4 className="font-black text-sm uppercase tracking-widest mb-1">WhatsApp Support</h4>
+                  <p className="text-slate-500 text-sm font-medium">Click to Chat</p>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
+            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Message sent successfully!', 'success'); }}>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Name</label>
+                  <input type="text" placeholder="John Doe" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20" required />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Email</label>
+                  <input type="email" placeholder="john@example.com" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Subject</label>
+                <input type="text" placeholder="How can we help?" className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20" required />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Message</label>
+                <textarea rows={4} placeholder="Your message here..." className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 resize-none" required></textarea>
+              </div>
+              <button type="submit" className="w-full py-5 bg-blue-600 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all">Send Message</button>
+            </form>
+          </div>
         </div>
-      </motion.div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-slate-100 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8">
+              <svg viewBox="0 0 100 100" className="w-full h-full text-blue-600 fill-current">
+                <path d="M50 10 C30 10 10 30 10 50 C10 70 30 90 50 90 C70 90 90 70 90 50 C90 30 70 10 50 10 Z M50 20 C65 20 75 30 75 45 C75 60 65 70 50 70 C35 70 25 60 25 45 C25 30 35 20 50 20 Z" />
+                <path d="M45 40 L55 40 L50 50 Z" />
+              </svg>
+            </div>
+            <span className="font-black text-lg tracking-tighter uppercase">SMM<span className="text-blue-600"> SERVICES</span></span>
+          </div>
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">© 2026 SMM SERVICES. All Rights Reserved.</p>
+          <div className="flex items-center gap-6">
+            <a href="#" className="text-slate-400 hover:text-blue-600 transition-colors"><Instagram size={20} /></a>
+            <a href="#" className="text-slate-400 hover:text-blue-600 transition-colors"><Twitter size={20} /></a>
+            <a href="#" className="text-slate-400 hover:text-blue-600 transition-colors"><Facebook size={20} /></a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
@@ -2660,8 +3758,30 @@ export default function App() {
       }
       showToast(`System Error: ${displayMsg}`, "error");
     };
+
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      console.error("Unhandled promise rejection:", event.reason);
+      let displayMsg = event.reason instanceof Error ? event.reason.message : String(event.reason);
+      try {
+        const errObj = JSON.parse(displayMsg);
+        if (errObj.error) {
+          displayMsg = errObj.error;
+          if (displayMsg.includes('insufficient permissions')) {
+            displayMsg = "Permission denied. Your account might be restricted.";
+          }
+        }
+      } catch (e) {
+        // Not JSON
+      }
+      showToast(`System Error: ${displayMsg}`, "error");
+    };
+
     window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
   }, []);
 
   useEffect(() => {
@@ -2682,8 +3802,11 @@ export default function App() {
           setUsername(initialUsername);
           
           // Immediate admin check for UI responsiveness
-          const isUserAdmin = (user.email === 'shaikhmubasshir76@gmail.com' || user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'Lombardiraffaelo6@gmail.com');
-          if (isUserAdmin) setIsAdmin(true);
+          const userEmail = user.email?.toLowerCase() || '';
+          const isUserAdmin = (userEmail === 'shaikhmubasshir76@gmail.com' || userEmail === 'shaikhmubasshir875@gmail.com' || userEmail === 'lombardiraffaelo6@gmail.com');
+          if (isUserAdmin) {
+            setIsAdmin(true);
+          }
 
           // Check if user exists in Firestore, if not create
           const userDocRef = doc(db, 'users', user.uid);
@@ -2696,26 +3819,24 @@ export default function App() {
                 uid: user.uid,
                 email: user.email,
                 username: user.displayName || user.email?.split('@')[0] || 'User',
-                role: (user.email === 'shaikhmubasshir76@gmail.com' || user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'Lombardiraffaelo6@gmail.com') ? 'admin' : 'user',
-                balance: 0,
+                role: isUserAdmin ? 'admin' : 'user',
+                balance: isUserAdmin ? 5000 : 0,
                 totalSpent: 0,
                 createdAt: Timestamp.now()
               };
               await setDoc(userDocRef, newUser);
               setIsAdmin(newUser.role === 'admin');
               setUsername(newUser.username);
-              setBalance('0.0000');
+              setBalance(newUser.balance.toFixed(4));
               setTotalSpent('0.0000');
-              showToast(`Welcome to Lombardi SMM, ${newUser.username}!`, 'success');
+              showToast(`Welcome to SMM SERVICES, ${newUser.username}!`, 'success');
             } else {
             console.log("User profile found.");
-            const userData = userDoc.data();
+            let userData = userDoc.data();
             
             // Ensure admin role is set if email matches
             let role = userData.role;
-            const isUserAdminByEmail = (user.email === 'shaikhmubasshir76@gmail.com' || user.email === 'shaikhmubasshir875@gmail.com' || user.email === 'Lombardiraffaelo6@gmail.com');
-            
-            if (isUserAdminByEmail && role !== 'admin') {
+            if (isUserAdmin && role !== 'admin') {
               console.log("Updating role to admin...");
               try {
                 await updateDoc(userDocRef, { role: 'admin' });
@@ -2725,19 +3846,31 @@ export default function App() {
                 role = 'admin'; // Force role to admin for UI state
               }
             }
+
+            // Ensure admin balance is at least $5000
+            let currentBalance = userData.balance || 0;
+            if (isUserAdmin) {
+              if (currentBalance < 5000) {
+                console.log("Updating admin balance to $5000...");
+                updateDoc(userDocRef, { balance: 5000 }).catch(err => {
+                  console.error("Failed to update admin balance in Firestore.", err);
+                });
+                currentBalance = 5000; // Force it for the UI even if update fails
+              }
+            }
             
-            setIsAdmin(isUserAdminByEmail || role === 'admin');
-            console.log("Is Admin set to:", isUserAdminByEmail || role === 'admin');
+            setIsAdmin(isUserAdmin || role === 'admin');
+            console.log("Is Admin set to:", isUserAdmin || role === 'admin');
             
             // If the stored username is generic but we have a display name from Google, update it
             let currentUsername = userData.username || 'User';
             if ((currentUsername === 'User' || currentUsername === 'Guest') && user.displayName) {
               currentUsername = user.displayName;
-              await updateDoc(userDocRef, { username: currentUsername });
+              updateDoc(userDocRef, { username: currentUsername }).catch(e => console.error("Update username failed", e));
             }
             
             setUsername(currentUsername);
-            setBalance(typeof userData.balance === 'number' ? userData.balance.toFixed(4) : '0.0000');
+            setBalance(typeof currentBalance === 'number' ? currentBalance.toFixed(4) : '5000.0000');
             setTotalSpent(typeof userData.totalSpent === 'number' ? userData.totalSpent.toFixed(4) : '0.0000');
             setMemberSince(userData.createdAt instanceof Timestamp ? userData.createdAt.toDate().toLocaleDateString() : 'N/A');
           }
@@ -2856,7 +3989,12 @@ export default function App() {
     const userUnsubscribe = onSnapshot(doc(db, 'users', uid!), (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        setBalance(typeof data.balance === 'number' ? data.balance.toFixed(4) : '0.0000');
+        const userEmail = email?.toLowerCase() || '';
+        const isUserAdmin = (userEmail === 'shaikhmubasshir76@gmail.com' || userEmail === 'shaikhmubasshir875@gmail.com' || userEmail === 'lombardiraffaelo6@gmail.com');
+        let currentBalance = typeof data.balance === 'number' ? data.balance : 0;
+        if (isUserAdmin && currentBalance < 5000) currentBalance = 5000;
+        
+        setBalance(currentBalance.toFixed(4));
         setTotalSpent(typeof data.totalSpent === 'number' ? data.totalSpent.toFixed(4) : '0.0000');
         if (data.username) setUsername(data.username);
       }
@@ -2866,7 +4004,10 @@ export default function App() {
     });
 
     // Real-time transactions
-    const transactionsQuery = query(collection(db, 'transactions'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+    const transactionsQuery = isAdmin
+      ? query(collection(db, 'transactions'), orderBy('createdAt', 'desc'))
+      : query(collection(db, 'transactions'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+    
     const transactionsUnsubscribe = onSnapshot(transactionsQuery, (snapshot) => {
       const transactionsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setTransactions(transactionsList);
@@ -2899,7 +4040,7 @@ export default function App() {
       usersUnsubscribe();
       userUnsubscribe();
     };
-  }, [isLoggedIn, isAdmin, uid, isProfileLoaded]);
+  }, [isLoggedIn, isAdmin, uid, isProfileLoaded, email]);
 
   // Auto-seed services if admin and empty
   useEffect(() => {
@@ -2932,8 +4073,8 @@ export default function App() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-smm-bg">
-        <LoginPanel onLogin={handleLogin} showToast={showToast} />
+      <div className="min-h-screen bg-white">
+        <LandingPage onLogin={handleLogin} showToast={showToast} services={services} />
         <AnimatePresence>
           {toast && (
             <Toast 
@@ -2969,6 +4110,7 @@ export default function App() {
           users={users}
           subscriptions={subscriptions}
           updates={updates}
+          transactions={transactions}
           showToast={showToast}
         />
       );
@@ -2977,7 +4119,7 @@ export default function App() {
           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
             <LayoutGrid size={32} />
           </div>
-          <h3 className="font-black text-sm uppercase tracking-[0.2em]">Lombardi Services</h3>
+          <h3 className="font-black text-sm uppercase tracking-[0.2em]">SMM SERVICES</h3>
           <p className="text-xs font-bold mt-2 uppercase tracking-widest opacity-60">This section is being updated</p>
         </div>
       );
@@ -2985,7 +4127,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-smm-bg text-white font-sans">
+    <div className="min-h-screen bg-smm-bg text-smm-text-dark font-sans">
       <Sidebar 
         activePage={activePage} 
         setActivePage={setActivePage} 
@@ -3018,9 +4160,14 @@ export default function App() {
       </div>
 
       {/* WhatsApp FAB */}
-      <div className="fixed bottom-8 right-8 w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl cursor-pointer hover:scale-110 transition-transform z-50">
+      <a 
+        href="https://wa.me/message/XRM6CMEHIU5EP1" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-8 right-8 w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl cursor-pointer hover:scale-110 transition-transform z-50"
+      >
         <MessageCircle size={32} />
-      </div>
+      </a>
 
       <AnimatePresence>
         {toast && (

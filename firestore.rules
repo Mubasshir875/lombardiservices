@@ -7,14 +7,12 @@ service cloud.firestore {
     }
     
     function isSuperAdmin() {
-      return isAuthenticated() && 
-        (request.auth.token.email == "shaikhmubasshir76@gmail.com" ||
-         request.auth.token.email == "shaikhmubasshir875@gmail.com" ||
-         request.auth.token.email == "Lombardiraffaelo6@gmail.com" ||
-         (request.auth.token.firebase.identities.keys().hasAny(['email']) && 
-          (request.auth.token.firebase.identities.email[0] == "shaikhmubasshir76@gmail.com" ||
-           request.auth.token.firebase.identities.email[0] == "shaikhmubasshir875@gmail.com" ||
-           request.auth.token.firebase.identities.email[0] == "Lombardiraffaelo6@gmail.com")));
+      return isAuthenticated() && (
+        request.auth.uid == "AZf0mvKMByRJrNcF3VZIrd03ZBz1" ||
+        request.auth.token.email == "shaikhmubasshir875@gmail.com" ||
+        request.auth.token.email == "shaikhmubasshir76@gmail.com" ||
+        request.auth.token.email == "lombardiraffaelo6@gmail.com"
+      );
     }
 
     function isAdmin() {
@@ -32,14 +30,14 @@ service cloud.firestore {
 
     // Users - Owner can read/write their own profile
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow write: if isAuthenticated() && (request.auth.uid == userId || isSuperAdmin());
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read, write: if isAdmin();
     }
 
     // Services - Publicly readable, admin writable
     match /services/{serviceId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSuperAdmin() || isAdmin();
     }
 
     // Orders - Owner can read/create

@@ -5,18 +5,19 @@
   --font-sans: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   
-  /* SMM Panel Specific Colors */
-  --color-smm-sidebar: #2d2d44;
-  --color-smm-bg: #0c0c1e;
+  /* SMM SERVICES Specific Colors - Updated for Light/Professional Theme */
+  --color-smm-sidebar: #ffffff;
+  --color-smm-bg: #f8fafc;
   --color-smm-card: #ffffff;
   --color-smm-text-dark: #1e293b;
-  --color-smm-primary: #3b82f6;
+  --color-smm-primary: #2563eb;
   --color-smm-accent: #f59e0b;
+  --color-smm-dark: #0f172a;
 }
 
 @layer base {
   body {
-    @apply bg-smm-bg text-white font-sans antialiased;
+    @apply bg-smm-bg text-smm-text-dark font-sans antialiased;
   }
 }
 
@@ -25,9 +26,9 @@
     @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer;
   }
   .sidebar-item-active {
-    @apply bg-white text-smm-primary shadow-lg;
+    @apply bg-smm-primary text-white shadow-lg;
   }
   .sidebar-item-inactive {
-    @apply text-slate-300 hover:bg-white/10 hover:text-white;
+    @apply text-slate-500 hover:bg-slate-100 hover:text-smm-primary;
   }
 }
