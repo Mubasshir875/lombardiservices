@@ -732,12 +732,20 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
 };
 
 const Orders = ({ setActivePage, orders, uid, showToast }: { setActivePage: (p: Page) => void, orders: any[], uid: string, showToast: (m: string, t: 'success' | 'error') => void }) => {
+  console.log("Orders Component Rendered. Orders Count:", orders.length, "UID:", uid);
   const tabs = ["All", "Pending", "In progress", "Completed", "Partial", "Processing", "Canceled"];
   const [activeTab, setActiveTab] = useState("All");
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredOrders = activeTab === "All" 
-    ? orders 
-    : orders.filter(o => o.status === activeTab);
+  const filteredOrders = orders.filter(o => {
+    const matchesTab = activeTab === "All" || o.status === activeTab;
+    const search = searchTerm.toLowerCase();
+    const matchesSearch = 
+      (o.id?.toString().toLowerCase().includes(search) ?? false) ||
+      (o.link?.toLowerCase().includes(search) ?? false) ||
+      (o.service?.toLowerCase().includes(search) ?? false);
+    return matchesTab && matchesSearch;
+  });
 
   const handleRefill = async (order: any) => {
     if (order.status !== 'Completed') {
@@ -789,7 +797,13 @@ const Orders = ({ setActivePage, orders, uid, showToast }: { setActivePage: (p: 
         <div className="p-6 border-b border-slate-100">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input type="text" placeholder="Search" className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none" />
+            <input 
+              type="text" 
+              placeholder="Search by ID, Link or Service" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20" 
+            />
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -4045,6 +4059,7 @@ export default function App() {
 
   useEffect(() => {
     if (!isLoggedIn || !isProfileLoaded) return;
+    console.log("Setting up data listeners. UID:", uid, "IsAdmin:", isAdmin);
 
     // Real-time services
     const servicesUnsubscribe = onSnapshot(collection(db, 'services'), (snapshot) => {
@@ -4058,10 +4073,20 @@ export default function App() {
     // Real-time orders (if admin see all, if user see only own)
     const ordersQuery = isAdmin 
       ? query(collection(db, 'orders'), orderBy('createdAt', 'desc'))
-      : query(collection(db, 'orders'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+      : query(collection(db, 'orders'), where('uid', '==', uid));
     
     const ordersUnsubscribe = onSnapshot(ordersQuery, (snapshot) => {
+      console.log(`Orders snapshot received. Count: ${snapshot.size}`);
       const ordersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      // Sort in memory if not sorted by Firestore
+      if (!isAdmin) {
+        ordersList.sort((a, b) => {
+          const timeA = a.createdAt?.toMillis?.() || 0;
+          const timeB = b.createdAt?.toMillis?.() || 0;
+          return timeB - timeA;
+        });
+      }
+      console.log("Setting orders state with:", ordersList.length, "orders");
       setOrders(ordersList);
     }, (error) => {
       console.error("Orders snapshot error", error);
@@ -4071,10 +4096,17 @@ export default function App() {
     // Real-time tickets
     const ticketsQuery = isAdmin
       ? query(collection(db, 'tickets'), orderBy('createdAt', 'desc'))
-      : query(collection(db, 'tickets'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+      : query(collection(db, 'tickets'), where('uid', '==', uid));
 
     const ticketsUnsubscribe = onSnapshot(ticketsQuery, (snapshot) => {
       const ticketsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      if (!isAdmin) {
+        ticketsList.sort((a, b) => {
+          const timeA = a.createdAt?.toMillis?.() || 0;
+          const timeB = b.createdAt?.toMillis?.() || 0;
+          return timeB - timeA;
+        });
+      }
       setTickets(ticketsList);
     }, (error) => {
       console.error("Tickets snapshot error", error);
@@ -4084,10 +4116,17 @@ export default function App() {
     // Real-time refills
     const refillsQuery = isAdmin
       ? query(collection(db, 'refills'), orderBy('createdAt', 'desc'))
-      : query(collection(db, 'refills'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+      : query(collection(db, 'refills'), where('uid', '==', uid));
 
     const refillsUnsubscribe = onSnapshot(refillsQuery, (snapshot) => {
       const refillsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      if (!isAdmin) {
+        refillsList.sort((a, b) => {
+          const timeA = a.createdAt?.toMillis?.() || 0;
+          const timeB = b.createdAt?.toMillis?.() || 0;
+          return timeB - timeA;
+        });
+      }
       setRefills(refillsList);
     }, (error) => {
       console.error("Refills snapshot error", error);
@@ -4127,10 +4166,17 @@ export default function App() {
     // Real-time transactions
     const transactionsQuery = isAdmin
       ? query(collection(db, 'transactions'), orderBy('createdAt', 'desc'))
-      : query(collection(db, 'transactions'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+      : query(collection(db, 'transactions'), where('uid', '==', uid));
     
     const transactionsUnsubscribe = onSnapshot(transactionsQuery, (snapshot) => {
       const transactionsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      if (!isAdmin) {
+        transactionsList.sort((a, b) => {
+          const timeA = a.createdAt?.toMillis?.() || 0;
+          const timeB = b.createdAt?.toMillis?.() || 0;
+          return timeB - timeA;
+        });
+      }
       setTransactions(transactionsList);
     }, (error) => {
       console.error("Transactions snapshot error", error);
