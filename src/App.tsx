@@ -164,8 +164,7 @@ const Sidebar = ({ activePage, setActivePage, isAdmin, isOpen, setIsOpen }: { ac
             </svg>
           </div>
           <div className="text-center">
-            <span className="text-smm-dark font-black text-xs tracking-tighter block">SMM</span>
-            <span className="text-blue-600 font-bold text-[10px] tracking-widest uppercase">SERVICES</span>
+            <span className="text-smm-dark font-black text-xs tracking-tighter block uppercase">lombardiservices</span>
           </div>
         </div>
 
@@ -379,7 +378,7 @@ const MassOrder = ({ services, uid, balance, totalSpent, showToast }: { services
         <button 
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full py-4 bg-smm-sidebar text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+          className="w-full py-4 bg-smm-primary text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
         >
           {loading ? 'Processing...' : 'Submit'}
         </button>
@@ -401,7 +400,7 @@ const Updates = ({ updates }: { updates: any[] }) => {
     <div className="max-w-7xl mx-auto">
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex items-center gap-4">
-          <div className="bg-smm-sidebar text-white px-4 py-2 rounded-lg text-xs font-bold">All</div>
+          <div className="bg-smm-primary text-white px-4 py-2 rounded-lg text-xs font-bold">All</div>
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input 
@@ -529,8 +528,11 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
       setLink('');
       setQuantity('');
       
-      // Auto hide success after 5 seconds
-      setTimeout(() => setShowSuccess(false), 5000);
+      // Redirect to orders page after a short delay
+      setTimeout(() => {
+        setShowSuccess(false);
+        setActivePage('orders');
+      }, 2000);
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, path);
     }
@@ -709,7 +711,7 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
             </div>
             <button 
               onClick={handleSubmit}
-              className="w-full py-4 bg-smm-sidebar text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:shadow-xl transition-all"
+              className="w-full py-4 bg-smm-primary text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
               Submit Order
             </button>
@@ -718,9 +720,9 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
 
         <div className="lg:col-span-4">
           <div className="bg-white rounded-3xl p-8 shadow-2xl h-full">
-            <h3 className="text-smm-text-dark font-bold text-lg mb-4">Lombardi Services</h3>
+            <h3 className="text-smm-text-dark font-bold text-lg mb-4">lombardiservices</h3>
             <p className="text-slate-600 text-sm leading-relaxed font-medium">
-              <span className="font-black">Lombardi Services</span> is used to access Social Networks, and making use of it for profits. You can use <span className="font-black">Lombardi Services</span> to get your marketing move on to the next stage of developing plans for your product or services. The social media used includes Facebook, twitter, Instagram, YouTube, LinkedIn and more. With <span className="font-black">Lombardi Services</span> you can grow your business rapidly. Buy Best SMM Panel Services from us and grow your business. <span className="font-black">Lombardi Services</span> is the best and most reliable service provider in the market.
+              <span className="font-black">lombardiservices</span> is used to access Social Networks, and making use of it for profits. You can use <span className="font-black">lombardiservices</span> to get your marketing move on to the next stage of developing plans for your product or services. The social media used includes Facebook, twitter, Instagram, YouTube, LinkedIn and more. With <span className="font-black">lombardiservices</span> you can grow your business rapidly. Buy Best lombardiservices from us and grow your business. <span className="font-black">lombardiservices</span> is the best and most reliable service provider in the market.
             </p>
           </div>
         </div>
@@ -776,7 +778,7 @@ const Orders = ({ setActivePage, orders, uid, showToast }: { setActivePage: (p: 
           <button 
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab ? 'bg-smm-sidebar text-white' : 'bg-white text-smm-text-dark border border-slate-200 hover:bg-slate-50'}`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab ? 'bg-smm-primary text-white' : 'bg-white text-smm-text-dark border border-slate-200 hover:bg-slate-50'}`}
           >
             {tab}
           </button>
@@ -801,6 +803,7 @@ const Orders = ({ setActivePage, orders, uid, showToast }: { setActivePage: (p: 
                 <th className="px-6 py-4">Quantity</th>
                 <th className="px-6 py-4">Service</th>
                 <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Tracking</th>
                 <th className="px-6 py-4">Action</th>
               </tr>
             </thead>
@@ -827,10 +830,41 @@ const Orders = ({ setActivePage, orders, uid, showToast }: { setActivePage: (p: 
                       </span>
                     </td>
                     <td className="px-6 py-4">
+                      {(row.status === 'Pending' || row.status === 'In progress') ? (
+                        row.trackingUrl ? (
+                          <a 
+                            href={row.trackingUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            <ExternalLink size={12} />
+                            <span>Track Order</span>
+                          </a>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-slate-500 italic text-[10px]">
+                              {row.trackingInfo || 'Processing tracking...'}
+                            </span>
+                            <div className="w-24 h-1 bg-slate-100 rounded-full overflow-hidden">
+                              <motion.div 
+                                initial={{ x: '-100%' }}
+                                animate={{ x: '100%' }}
+                                transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                                className="w-1/2 h-full bg-blue-500"
+                              />
+                            </div>
+                          </div>
+                        )
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
                       {row.status === 'Completed' && (
                         <button 
                           onClick={() => handleRefill(row)}
-                          className="bg-smm-sidebar text-white px-3 py-1 rounded text-[10px] font-bold hover:bg-blue-700 transition-colors"
+                          className="bg-smm-primary text-white px-3 py-1 rounded text-[10px] font-bold hover:bg-blue-700 transition-colors"
                         >
                           Refill
                         </button>
@@ -840,7 +874,7 @@ const Orders = ({ setActivePage, orders, uid, showToast }: { setActivePage: (p: 
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-slate-400 italic">No orders found</td>
+                  <td colSpan={9} className="px-6 py-12 text-center text-slate-400 italic">No orders found</td>
                 </tr>
               )}
             </tbody>
@@ -857,6 +891,7 @@ const Tickets = ({ tickets, uid, showToast }: { tickets: any[], uid: string, sho
   const [orderId, setOrderId] = useState('');
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
 
   const filteredTickets = tickets.filter(t => 
     t.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -947,7 +982,7 @@ const Tickets = ({ tickets, uid, showToast }: { tickets: any[], uid: string, sho
           </div>
           <button 
             onClick={handleSubmit}
-            className="w-full py-4 bg-smm-sidebar text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:shadow-xl transition-all"
+            className="w-full py-4 bg-smm-primary text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             Submit ticket
           </button>
@@ -989,22 +1024,48 @@ const Tickets = ({ tickets, uid, showToast }: { tickets: any[], uid: string, sho
             <tbody className="text-sm font-medium text-smm-text-dark">
               {filteredTickets.length > 0 ? (
                 filteredTickets.map((ticket, i) => (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4">{ticket.id}</td>
-                    <td className="px-6 py-4">{ticket.subject}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                        ticket.status === 'Open' ? 'bg-yellow-100 text-yellow-700' : 
-                        ticket.status === 'Closed' ? 'bg-emerald-100 text-emerald-700' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
-                        {ticket.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
-                      {ticket.createdAt instanceof Timestamp ? ticket.createdAt.toDate().toLocaleString() : ticket.createdAt?.toString() || 'N/A'}
-                    </td>
-                  </tr>
+                  <React.Fragment key={i}>
+                    <tr 
+                      onClick={() => setSelectedTicket(selectedTicket?.id === ticket.id ? null : ticket)}
+                      className="hover:bg-slate-50/50 transition-colors cursor-pointer"
+                    >
+                      <td className="px-6 py-4">{ticket.id}</td>
+                      <td className="px-6 py-4">{ticket.subject}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                          ticket.status === 'Open' ? 'bg-yellow-100 text-yellow-700' : 
+                          ticket.status === 'Closed' ? 'bg-emerald-100 text-emerald-700' :
+                          'bg-slate-100 text-slate-600'
+                        }`}>
+                          {ticket.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
+                        {ticket.createdAt instanceof Timestamp ? ticket.createdAt.toDate().toLocaleString() : ticket.createdAt?.toString() || 'N/A'}
+                      </td>
+                    </tr>
+                    {selectedTicket?.id === ticket.id && (
+                      <tr className="bg-slate-50/30">
+                        <td colSpan={4} className="px-6 py-4">
+                          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Message</span>
+                              {ticket.orderId && (
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Order ID: {ticket.orderId}</span>
+                              )}
+                            </div>
+                            <p className="text-slate-600 whitespace-pre-wrap">{ticket.message}</p>
+                            {ticket.adminReply && (
+                              <div className="mt-4 pt-4 border-t border-slate-100">
+                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-1">Admin Reply</span>
+                                <p className="text-slate-600 whitespace-pre-wrap">{ticket.adminReply}</p>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))
               ) : (
                 <tr className="text-center py-12">
@@ -1040,7 +1101,7 @@ const Subscriptions = ({ subscriptions }: { subscriptions: any[] }) => {
           <button 
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab ? 'bg-smm-sidebar text-white' : 'bg-white text-smm-text-dark border border-slate-200 hover:bg-slate-50'}`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab ? 'bg-smm-primary text-white' : 'bg-white text-smm-text-dark border border-slate-200 hover:bg-slate-50'}`}
           >
             {tab}
           </button>
@@ -1116,7 +1177,7 @@ const Refill = ({ refills }: { refills: any[] }) => {
           <button 
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab ? 'bg-smm-sidebar text-white' : 'bg-white text-smm-text-dark border border-slate-200 hover:bg-slate-50'}`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab ? 'bg-smm-primary text-white' : 'bg-white text-smm-text-dark border border-slate-200 hover:bg-slate-50'}`}
           >
             {tab}
           </button>
@@ -1460,7 +1521,7 @@ const AddFunds = ({
             <button 
               onClick={handleCryptoPayment}
               disabled={loading}
-              className="w-full py-5 bg-smm-sidebar text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full py-5 bg-smm-primary text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -2316,6 +2377,17 @@ const AdminDashboard = ({
                             <>
                               <button 
                                 onClick={() => {
+                                  setNewUpdateServiceId(s.id.toString());
+                                  setNewUpdateServiceName(s.name);
+                                  setActiveTab('updates');
+                                }}
+                                className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
+                                title="Add Update for this Service"
+                              >
+                                <Bell size={18} />
+                              </button>
+                              <button 
+                                onClick={() => {
                                   setEditingServiceId(s.id);
                                   setEditingServiceData({
                                     name: s.name,
@@ -2385,6 +2457,7 @@ const AdminDashboard = ({
                   <th className="px-6 py-4">Service</th>
                   <th className="px-6 py-4">Charge</th>
                   <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Tracking</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -2431,6 +2504,32 @@ const AdminDashboard = ({
                           </span>
                         )}
                       </td>
+                      <td className="px-6 py-4">
+                        {editingOrderId === o.id ? (
+                          <div className="flex flex-col gap-2">
+                            <input 
+                              type="text" 
+                              placeholder="Tracking URL"
+                              value={editingOrderData.trackingUrl || ''} 
+                              onChange={(e) => setEditingOrderData({...editingOrderData, trackingUrl: e.target.value})}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-[10px]"
+                            />
+                            <input 
+                              type="text" 
+                              placeholder="Tracking Info"
+                              value={editingOrderData.trackingInfo || ''} 
+                              onChange={(e) => setEditingOrderData({...editingOrderData, trackingInfo: e.target.value})}
+                              className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-[10px]"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            {o.trackingUrl && <span className="text-blue-600 truncate max-w-[100px]">{o.trackingUrl}</span>}
+                            {o.trackingInfo && <span className="text-slate-500 italic text-[10px]">{o.trackingInfo}</span>}
+                            {!o.trackingUrl && !o.trackingInfo && <span className="text-slate-400">—</span>}
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
                         {editingOrderId === o.id ? (
                           <>
@@ -2442,7 +2541,12 @@ const AdminDashboard = ({
                             <button 
                               onClick={() => {
                                 setEditingOrderId(o.id);
-                                setEditingOrderData({ charge: o.charge, status: o.status });
+                                setEditingOrderData({ 
+                                  charge: o.charge, 
+                                  status: o.status,
+                                  trackingUrl: o.trackingUrl || '',
+                                  trackingInfo: o.trackingInfo || ''
+                                });
                               }} 
                               className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" 
                               title="Edit"
@@ -2460,7 +2564,7 @@ const AdminDashboard = ({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">No orders found</td>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">No orders found</td>
                   </tr>
                 )}
               </tbody>
@@ -2924,6 +3028,24 @@ const AdminDashboard = ({
               Add New Update
             </h3>
             <form onSubmit={handleAddUpdate} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Service (Quick Fill)</label>
+                <select 
+                  onChange={(e) => {
+                    const selected = services.find(s => s.id.toString() === e.target.value);
+                    if (selected) {
+                      setNewUpdateServiceId(selected.id.toString());
+                      setNewUpdateServiceName(selected.name);
+                    }
+                  }}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">-- Choose a Service --</option>
+                  {services.map(s => (
+                    <option key={s.id} value={s.id}>{s.id} - {s.name}</option>
+                  ))}
+                </select>
+              </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Service ID</label>
                 <input 
@@ -3194,28 +3316,28 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
 
   const steps = [
     { icon: <User size={24} />, title: "Sign up", desc: "Register into our panel, fill in all the necessary data and get ready to be famous." },
-    { icon: <Wallet size={24} />, title: "Add funds", desc: "Add money to your SMM account and be ready to rise like a star and give your business a new height." },
+    { icon: <Wallet size={24} />, title: "Add funds", desc: "Add money to your account and be ready to rise like a star and give your business a new height." },
     { icon: <ShoppingCart size={24} />, title: "Choose service", desc: "Select a service and place an order and get ready to start receiving more publicity on social media." },
     { icon: <CheckCircle2 size={24} />, title: "Enjoy popularity", desc: "We will create and proceed with an order and inform you once done. Enjoy and stay with us." }
   ];
 
   const features = [
-    { icon: <ShieldCheck size={24} />, title: "Great quality", desc: "The quality of our SMM services will pleasantly surprise you." },
+    { icon: <ShieldCheck size={24} />, title: "Great quality", desc: "The quality of our lombardiservices will pleasantly surprise you." },
     { icon: <CreditCard size={24} />, title: "Multiple payment systems", desc: "Great variety of payment methods for you to choose from." },
-    { icon: <Bitcoin size={24} />, title: "Really cheap", desc: "SMM services that we offer on our panel are extremely cheap." },
+    { icon: <Bitcoin size={24} />, title: "Really cheap", desc: "lombardiservices that we offer on our panel are extremely cheap." },
     { icon: <Clock size={24} />, title: "Extra quick delivery", desc: "Customer orders on our panel are processed very fast." }
   ];
 
   const faqs = [
-    { q: "SMM SERVICES — what is it?", a: "SMM SERVICES is an online store that sells various social media marketing services." },
+    { q: "lombardiservices — what is it?", a: "lombardiservices is an online store that sells various social media marketing services." },
     { q: "What kinds of services can I buy here?", a: "On our panel you can find different social media services: followers, likes, views, etc." },
     { q: "Is it safe to buy services on this panel?", a: "Sure! Our services are safe to use, you won't get banned or anything like that." },
     { q: "What is the mass order feature for?", a: "Using mass orders, it's easy to place several orders with different links at the same time." }
   ];
 
   const reviews = [
-    { name: "Roberto Santos", text: "SMM SERVICES I got here did exactly what I expected them to do — they helped my business get more attention and increased my sales. Thank you!" },
-    { name: "Brian Delaney", text: "This SMM SERVICES panel is incredible! All services are so cheap and yet their quality doesn't disappoint. I'm now your regular customer." },
+    { name: "Roberto Santos", text: "lombardiservices I got here did exactly what I expected them to do — they helped my business get more attention and increased my sales. Thank you!" },
+    { name: "Brian Delaney", text: "This lombardiservices panel is incredible! All services are so cheap and yet their quality doesn't disappoint. I'm now your regular customer." },
     { name: "Adam Lim", text: "Using this panel helped me save a TON on social media services. I was just a beginner small business owner so I didn't have lots of money to spend on professional online promos." }
   ];
 
@@ -3229,10 +3351,10 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
   ];
 
   const sampleServices = [
-    { title: "Instagram Followers", price: "$0.05", icon: <Instagram size={20} />, color: "#ec4899" },
-    { title: "TikTok Followers", price: "$0.12", icon: <Music size={20} />, color: "#10b981" },
-    { title: "YouTube Views", price: "$0.85", icon: <Youtube size={20} />, color: "#ef4444" },
-    { title: "Facebook Likes", price: "$0.25", icon: <Facebook size={20} />, color: "#1d4ed8" }
+    { title: "Instagram Followers", price: "$7", icon: <Instagram size={20} />, color: "#ec4899" },
+    { title: "TikTok Followers", price: "$8", icon: <Music size={20} />, color: "#10b981" },
+    { title: "YouTube Views", price: "$6", icon: <Youtube size={20} />, color: "#ef4444" },
+    { title: "Facebook Likes", price: "$1", icon: <Facebook size={20} />, color: "#1d4ed8" }
   ];
 
   if (showPublicServices) {
@@ -3247,7 +3369,7 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
                   <path d="M45 40 L55 40 L50 50 Z" />
                 </svg>
               </div>
-              <span className="font-black text-xl tracking-tighter">LOMBARDI<span className="text-blue-600">SMM</span></span>
+              <span className="font-black text-xl tracking-tighter uppercase">lombardiservices</span>
             </div>
             <div className="flex items-center gap-4">
               <button onClick={() => setShowPublicServices(false)} className="text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-blue-600">Back to Home</button>
@@ -3259,7 +3381,7 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h1 className="text-4xl font-black tracking-tighter uppercase mb-4">Our Services</h1>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Browse our full list of high-quality Lombardi Services</p>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Browse our full list of high-quality lombardiservices</p>
             </div>
             <Services services={services} />
           </div>
@@ -3274,11 +3396,11 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
       <div className="hidden lg:block bg-slate-900 text-white py-2 text-[10px] font-black uppercase tracking-[0.2em]">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-6">
-            <span className="flex items-center gap-2"><Mail size={12} className="text-blue-500" /> support@lombardismm.com</span>
+            <span className="flex items-center gap-2"><Mail size={12} className="text-blue-500" /> support@lombardiservices.com</span>
             <span className="flex items-center gap-2"><MessageCircle size={12} className="text-emerald-500" /> +91 9999999999</span>
           </div>
           <div className="flex items-center gap-4">
-            <span>SMM SERVICES IS THE CHEAPEST SERVICES IN THE WORLD</span>
+            <span>lombardiservices is the cheapest</span>
             <div className="w-px h-3 bg-white/20" />
             <span>24/7 SUPPORT AVAILABLE</span>
           </div>
@@ -3295,7 +3417,7 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
                 <path d="M45 40 L55 40 L50 50 Z" />
               </svg>
             </div>
-            <span className="font-black text-xl tracking-tighter">LOMBARDI<span className="text-blue-600">SMM</span></span>
+            <span className="font-black text-xl tracking-tighter uppercase">lombardiservices</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-slate-500">
             <a href="#services" className="hover:text-blue-600 transition-colors">Services</a>
@@ -3322,16 +3444,15 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
               <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
               Official Main Provider Panel
             </div>
-            <h1 className="text-6xl lg:text-8xl font-black tracking-tighter leading-[0.85]">
-              SMM <br />
-              <span className="text-blue-600">SERVICES</span> <br />
-              IS THE CHEAPEST
+            <h1 className="text-6xl lg:text-8xl font-black tracking-tighter leading-[0.85] uppercase">
+              lombardiservices <br />
+              is the cheapest
             </h1>
             <p className="text-slate-500 text-lg font-medium max-w-lg leading-relaxed">
-              SMM SERVICES IS THE CHEAPEST SERVICES IN THE WORLD. We provide high-quality services for Instagram, TikTok, YouTube, and more.
+              lombardiservices is the cheapest. We provide high-quality services for Instagram, TikTok, YouTube, and more.
             </p>
             <ul className="grid sm:grid-cols-2 gap-4">
-              {["Main Supplier of SMM SERVICES", "WhatsApp Support ⚡", "We beat any price/any quality !", "Best Support in the market !"].map((item, i) => (
+              {["Main Supplier of lombardiservices", "WhatsApp Support ⚡", "We beat any price/any quality !", "Best Support in the market !"].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-sm font-bold text-slate-600 uppercase tracking-tight">
                   <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <CheckCircle2 className="text-white" size={12} />
@@ -3356,7 +3477,7 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
             </div>
             <div className="mb-8">
               <h2 className="text-2xl font-black tracking-tighter uppercase">{isRegistering ? 'Create Account' : 'Sign In'}</h2>
-              <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1">Access the best Lombardi Services</p>
+              <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1">Access the best lombardiservices</p>
             </div>
 
             <form onSubmit={handleAuth} className="space-y-4">
@@ -3520,8 +3641,8 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
           <div className="space-y-10">
             <div>
-              <h2 className="text-4xl lg:text-5xl font-black tracking-tighter uppercase mb-6">Why Choose <span className="text-blue-600">SMM SERVICES?</span></h2>
-              <p className="text-slate-500 text-lg font-medium leading-relaxed">We are the #1 SMM SERVICES provider for resellers worldwide. Our platform is built for speed, reliability, and affordability.</p>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tighter uppercase mb-6">Why Choose <span className="text-blue-600">lombardiservices?</span></h2>
+              <p className="text-slate-500 text-lg font-medium leading-relaxed">We are the #1 lombardiservices provider for resellers worldwide. Our platform is built for speed, reliability, and affordability.</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-8">
               {[
@@ -3546,9 +3667,9 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
             <div className="bg-blue-600 rounded-[3.5rem] p-12 text-white space-y-8 relative overflow-hidden shadow-2xl shadow-blue-200">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
-              <h3 className="text-3xl font-black tracking-tighter uppercase leading-tight">The Most Trusted SMM SERVICES for Professionals</h3>
+              <h3 className="text-3xl font-black tracking-tighter uppercase leading-tight">The Most Trusted lombardiservices for Professionals</h3>
               <p className="text-blue-100 text-lg leading-relaxed font-medium">
-                SMM SERVICES has been serving thousands of resellers for years. We understand the market and provide the tools you need to succeed in your social media marketing business.
+                lombardiservices has been serving thousands of resellers for years. We understand the market and provide the tools you need to succeed in your social media marketing business.
               </p>
               <div className="flex items-center gap-6 pt-4">
                 <div className="text-center">
@@ -3679,9 +3800,9 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
                 <path d="M45 40 L55 40 L50 50 Z" />
               </svg>
             </div>
-            <span className="font-black text-lg tracking-tighter uppercase">SMM<span className="text-blue-600"> SERVICES</span></span>
+            <span className="font-black text-lg tracking-tighter uppercase">lombardiservices</span>
           </div>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">© 2026 SMM SERVICES. All Rights Reserved.</p>
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">© 2026 lombardiservices. All Rights Reserved.</p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-slate-400 hover:text-blue-600 transition-colors"><Instagram size={20} /></a>
             <a href="#" className="text-slate-400 hover:text-blue-600 transition-colors"><Twitter size={20} /></a>
@@ -3829,7 +3950,7 @@ export default function App() {
               setUsername(newUser.username);
               setBalance(newUser.balance.toFixed(4));
               setTotalSpent('0.0000');
-              showToast(`Welcome to SMM SERVICES, ${newUser.username}!`, 'success');
+              showToast(`Welcome to lombardiservices, ${newUser.username}!`, 'success');
             } else {
             console.log("User profile found.");
             let userData = userDoc.data();
@@ -4119,7 +4240,7 @@ export default function App() {
           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
             <LayoutGrid size={32} />
           </div>
-          <h3 className="font-black text-sm uppercase tracking-[0.2em]">SMM SERVICES</h3>
+          <h3 className="font-black text-sm uppercase tracking-[0.2em]">lombardiservices</h3>
           <p className="text-xs font-bold mt-2 uppercase tracking-widest opacity-60">This section is being updated</p>
         </div>
       );
