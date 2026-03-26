@@ -197,8 +197,19 @@ const Sidebar = ({ activePage, setActivePage, isAdmin, isOpen, setIsOpen }: { ac
 
 const Header = ({ balance, onLogout, onMenuClick, setActivePage }: { balance: string, onLogout: () => void, onMenuClick: () => void, setActivePage: (p: Page) => void }) => {
   return (
-    <div className="fixed top-0 right-0 left-0 lg:left-64 h-16 flex items-center justify-between lg:justify-end px-4 lg:px-8 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
-      <button onClick={onMenuClick} className="lg:hidden p-2 text-smm-dark bg-slate-100 rounded-lg">
+    <div className="fixed top-0 right-0 left-0 lg:left-64 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100 py-1 overflow-hidden">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-[10px] font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-[10px] font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+      <div className="h-16 flex items-center justify-between lg:justify-end px-4 lg:px-8">
+        <button onClick={onMenuClick} className="lg:hidden p-2 text-smm-dark bg-slate-100 rounded-lg">
         <Menu size={20} />
       </button>
       <div className="flex items-center gap-4 lg:gap-6">
@@ -235,6 +246,7 @@ const Header = ({ balance, onLogout, onMenuClick, setActivePage }: { balance: st
         </button>
       </div>
     </div>
+  </div>
   );
 };
 
@@ -249,6 +261,17 @@ const Services = ({ services }: { services: Service[] }) => {
 
   return (
     <div className="max-w-7xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div className="p-6 border-b border-slate-100">
           <div className="relative max-w-md">
@@ -366,6 +389,17 @@ const MassOrder = ({ services, uid, balance, totalSpent, showToast }: { services
 
   return (
     <div className="max-w-4xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-3xl p-8 shadow-2xl">
         <label className="block text-smm-text-dark font-bold text-sm mb-4">One order per line in format</label>
         <textarea 
@@ -398,6 +432,17 @@ const Updates = ({ updates }: { updates: any[] }) => {
 
   return (
     <div className="max-w-7xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex items-center gap-4">
           <div className="bg-smm-primary text-white px-4 py-2 rounded-lg text-xs font-bold">All</div>
@@ -540,6 +585,17 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
 
   return (
     <div className="max-w-6xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="text-center mb-8">
         <h2 className="text-xl font-bold tracking-tight inline-flex items-center gap-2 border-b-2 border-white pb-1">
           🤝 OUR BELIEVE - QUALITY OVER QUANTITY 🤝
@@ -775,6 +831,17 @@ const Orders = ({ setActivePage, orders, uid, showToast }: { setActivePage: (p: 
 
   return (
     <div className="max-w-7xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl p-6 mb-8 shadow-xl flex items-center justify-center">
         <span className="text-smm-text-dark font-black text-sm tracking-tight">
           HAVING ANY ISSUE IN ORDERS? <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => setActivePage('tickets')}>CLICK HERE TO SEND TICKET</span>
@@ -941,6 +1008,17 @@ const Tickets = ({ tickets, uid, showToast }: { tickets: any[], uid: string, sho
 
   return (
     <div className="max-w-5xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-3xl p-8 shadow-2xl mb-8">
         <div className="space-y-6">
           <div>
@@ -1110,6 +1188,17 @@ const Subscriptions = ({ subscriptions }: { subscriptions: any[] }) => {
 
   return (
     <div className="max-w-7xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-2 mb-8">
         {tabs.map(tab => (
           <button 
@@ -1186,6 +1275,17 @@ const Refill = ({ refills }: { refills: any[] }) => {
 
   return (
     <div className="max-w-7xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-2 mb-8">
         {tabs.map(tab => (
           <button 
@@ -1256,6 +1356,17 @@ const Refill = ({ refills }: { refills: any[] }) => {
 const Transactions = ({ transactions }: { transactions: any[] }) => {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-3xl p-8 shadow-2xl">
         <h2 className="text-smm-text-dark font-black text-2xl mb-8 uppercase tracking-tight">Transaction History</h2>
         
@@ -1303,6 +1414,17 @@ const Transactions = ({ transactions }: { transactions: any[] }) => {
 const Profile = ({ username, uid, balance, totalSpent, memberSince }: { username: string, uid: string, balance: string, totalSpent: string, memberSince: string }) => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center gap-6 mb-8">
           <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-black">
@@ -1435,6 +1557,17 @@ const AddFunds = ({
 
   return (
     <div className="max-w-4xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-3xl p-8 shadow-2xl">
         <h2 className="text-smm-text-dark font-black text-2xl mb-8 text-center uppercase tracking-tight">Add Funds</h2>
         
@@ -2050,6 +2183,17 @@ const AdminDashboard = ({
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 overflow-hidden shadow-sm">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
+
       <div className="flex flex-col md:flex-row items-center justify-between bg-white p-6 rounded-3xl shadow-xl gap-4">
         <h2 className="text-smm-text-dark font-black text-2xl uppercase tracking-tight">Admin Control Center</h2>
         <div className="flex flex-wrap gap-2">
@@ -3406,6 +3550,16 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100 py-3 overflow-hidden">
+        <div className="animate-marquee flex whitespace-nowrap">
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+          <span className="text-sm font-black text-smm-primary uppercase tracking-[0.2em] px-8">
+            LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST • LOMBARDI SERVICES IS THE CHEAPEST
+          </span>
+        </div>
+      </div>
       {/* Top Bar */}
       <div className="hidden lg:block bg-slate-900 text-white py-2 text-[10px] font-black uppercase tracking-[0.2em]">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
@@ -3459,8 +3613,10 @@ const LandingPage = ({ onLogin, showToast, services }: { onLogin: () => void, sh
               Official Main Provider Panel
             </div>
             <h1 className="text-6xl lg:text-8xl font-black tracking-tighter leading-[0.85] uppercase">
-              lombardiservices <br />
-              is the cheapest
+              lombardi <br />
+              services <br />
+              is the <br />
+              cheapest
             </h1>
             <p className="text-slate-500 text-lg font-medium max-w-lg leading-relaxed">
               lombardiservices is the cheapest. We provide high-quality services for Instagram, TikTok, YouTube, and more.
