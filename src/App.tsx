@@ -61,7 +61,6 @@ import {
   ExternalLink,
   QrCode
 } from "lucide-react";
-import { seedServices as seedBulkServices } from "./services/bulkServices";
 import { 
   auth, 
   db, 
@@ -86,6 +85,7 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
+  writeBatch,
   getDocFromServer,
   query, 
   where, 
@@ -254,8 +254,8 @@ const Services = ({ services }: { services: Service[] }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredServices = services.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.id.toString().includes(searchTerm) ||
+    (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (s.id || '').toString().includes(searchTerm) ||
     (s.category && s.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -341,7 +341,7 @@ const MassOrder = ({ services, uid, balance, totalSpent, showToast }: { services
 
       const qty = parseInt(quantity);
       const rate = parseFloat(service.rate.replace('$', ''));
-      const charge = parseFloat((rate * qty / 1000).toFixed(2));
+      const charge = parseFloat((rate * qty / 1000).toFixed(4));
       totalCharge += charge;
 
       ordersToPlace.push({
@@ -351,14 +351,14 @@ const MassOrder = ({ services, uid, balance, totalSpent, showToast }: { services
         service: `${service.id} — ${service.name}`,
         link,
         quantity: qty,
-        charge: charge.toFixed(2),
+        charge: charge.toFixed(4),
         status: "Pending",
         createdAt: serverTimestamp()
       });
     }
 
     if (parseFloat(balance) < totalCharge) {
-      showToast(`Insufficient balance. Total charge for these orders is $${totalCharge.toFixed(2)}`, 'error');
+      showToast(`Insufficient balance. Total charge for these orders is $${totalCharge.toFixed(4)}`, 'error');
       setLoading(false);
       return;
     }
@@ -536,7 +536,7 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
     
     const qty = parseInt(quantity);
     const rate = parseFloat(selectedService.rate.replace('$', ''));
-    const charge = parseFloat((rate * qty / 1000).toFixed(2));
+    const charge = parseFloat((rate * qty / 1000).toFixed(4));
     
     const orderId = Math.floor(10000000 + Math.random() * 90000000).toString();
     console.log("Placing order:", { orderId, uid, serviceId: selectedService.id, charge, balance });
@@ -733,7 +733,7 @@ const NewOrder = ({ setActivePage, balance, totalSpent, services, username, uid,
               {services.length === 0 && (
                 <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-xs font-bold uppercase tracking-tight flex items-center gap-3">
                   <AlertTriangle size={18} />
-                  <span>No services found. If you are an admin, please go to Admin Panel &gt; Services and click "Seed Bulk Services".</span>
+                  <span>No services found. Please go to Admin Panel &gt; Services to add your services manually.</span>
                 </div>
               )}
             </div>
@@ -1389,7 +1389,7 @@ const Transactions = ({ transactions }: { transactions: any[] }) => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {t.createdAt instanceof Timestamp ? t.createdAt.toDate().toLocaleString() : 'N/A'}
                     </td>
-                    <td className="px-6 py-4 font-black text-emerald-600">+${t.amount?.toFixed(2)}</td>
+                    <td className="px-6 py-4 font-black text-emerald-600">+${t.amount?.toFixed(4)}</td>
                     <td className="px-6 py-4 uppercase tracking-widest text-[10px] font-black">{t.method}</td>
                     <td className="px-6 py-4">
                       <span className="px-2 py-1 bg-emerald-100 text-emerald-600 rounded text-[10px] font-bold">
@@ -1479,7 +1479,7 @@ const AddFunds = ({
   uid: string, 
   showToast: (m: string, t: 'success' | 'error') => void
 }) => {
-  const [method, setMethod] = useState<'crypto' | 'paypal' | 'paytm'>('paytm');
+  const [method, setMethod] = useState<'crypto' | 'paypal'>('crypto');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [transactionId, setTransactionId] = useState('');
@@ -1527,34 +1527,6 @@ const AddFunds = ({
     }
   };
 
-  const handlePaytmPayment = async () => {
-    if (!amount || !transactionId) {
-      showToast('Please fill all fields', 'error');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Add transaction record as pending for admin approval
-      await addDoc(collection(db, 'transactions'), {
-        uid,
-        amount: parseFloat(amount),
-        method: 'paytm',
-        status: 'Pending',
-        id: transactionId,
-        createdAt: serverTimestamp()
-      });
-
-      showToast('Payment submitted for verification. Balance will be updated soon.', 'success');
-      setAmount('');
-      setTransactionId('');
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'transactions');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl py-3 mb-8 overflow-hidden shadow-sm">
@@ -1571,17 +1543,7 @@ const AddFunds = ({
       <div className="bg-white rounded-3xl p-8 shadow-2xl">
         <h2 className="text-smm-text-dark font-black text-2xl mb-8 text-center uppercase tracking-tight">Add Funds</h2>
         
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <button 
-            onClick={() => setMethod('paytm')}
-            className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${method === 'paytm' ? 'border-blue-600 bg-blue-50' : 'border-slate-100 hover:border-blue-200'}`}
-          >
-            <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600">
-              <QrCode size={24} />
-            </div>
-            <span className="text-smm-text-dark font-bold text-xs uppercase tracking-widest">PayTM/UPI</span>
-          </button>
-
+        <div className="grid grid-cols-2 gap-4 mb-8">
           <button 
             onClick={() => setMethod('crypto')}
             className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${method === 'crypto' ? 'border-orange-500 bg-orange-50' : 'border-slate-100 hover:border-orange-200'}`}
@@ -1602,51 +1564,6 @@ const AddFunds = ({
             <span className="text-smm-text-dark font-bold text-xs uppercase tracking-widest">PayPal</span>
           </button>
         </div>
-
-        {method === 'paytm' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Transaction ID (UTR)</label>
-                <input 
-                  type="text" 
-                  value={transactionId}
-                  onChange={(e) => setTransactionId(e.target.value)}
-                  placeholder="Enter 12 digit UTR number" 
-                  className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20 font-bold" 
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Amount (USD)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                  <input 
-                    type="number" 
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00" 
-                    className="w-full pl-8 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-smm-text-dark outline-none focus:ring-2 focus:ring-blue-500/20 font-bold" 
-                  />
-                </div>
-              </div>
-            </div>
-
-            <button 
-              onClick={handlePaytmPayment}
-              disabled={loading}
-              className="w-full py-5 bg-blue-600 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle2 size={20} />
-                  Submit Payment
-                </>
-              )}
-            </button>
-          </div>
-        )}
 
         {method === 'crypto' && (
           <div className="space-y-6">
@@ -1758,13 +1675,14 @@ const AdminDashboard = ({
   const [newMax, setNewMax] = useState('');
   const [newCategory, setNewCategory] = useState('Instagram Followers');
   const [newDescription, setNewDescription] = useState('');
-  const [isSeeding, setIsSeeding] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const [newUpdateServiceId, setNewUpdateServiceId] = useState('');
   const [newUpdateServiceName, setNewUpdateServiceName] = useState('');
   const [newUpdateText, setNewUpdateText] = useState('');
 
-  const totalRevenue = orders.reduce((acc, curr) => acc + parseFloat(curr.charge || 0), 0).toFixed(2);
+  const totalRevenue = orders.reduce((acc, curr) => acc + parseFloat(curr.charge || 0), 0).toFixed(4);
 
   const handleAddAdminFunds = async () => {
     const user = auth.currentUser;
@@ -1784,8 +1702,8 @@ const AdminDashboard = ({
   const [transactionSearch, setTransactionSearch] = useState('');
 
   const filteredServices = services.filter(s => 
-    s.name.toLowerCase().includes(serviceSearch.toLowerCase()) || 
-    s.id.toString().includes(serviceSearch) ||
+    (s.name || '').toLowerCase().includes(serviceSearch.toLowerCase()) || 
+    (s.id || '').toString().includes(serviceSearch) ||
     (s.category && s.category.toLowerCase().includes(serviceSearch.toLowerCase()))
   );
 
@@ -1832,7 +1750,7 @@ const AdminDashboard = ({
     const amount = parseFloat(amountStr);
     if (isNaN(amount)) return;
 
-    if (window.confirm(`Are you sure you want to add $${amount.toFixed(2)} to ALL ${users.length} users?`)) {
+    if (window.confirm(`Are you sure you want to add $${amount.toFixed(4)} to ALL ${users.length} users?`)) {
       showToast(`Adding funds to ${users.length} users...`, "success");
       let successCount = 0;
       for (const u of users) {
@@ -1859,23 +1777,6 @@ const AdminDashboard = ({
     t.status.toLowerCase().includes(ticketSearch.toLowerCase())
   );
 
-  const handleSeedBulk = async () => {
-    setIsSeeding(true);
-    try {
-      const result = await seedBulkServices();
-      if (result.success) {
-        showToast(`Successfully seeded ${result.count} services!`, 'success');
-      } else {
-        showToast(`Seeding failed: ${result.error || 'Unknown error'}`, 'error');
-      }
-    } catch (error) {
-      showToast('Failed to seed services. Check console for details.', 'error');
-      console.error(error);
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
   const handleAddService = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newRate || !newMin || !newMax) {
@@ -1896,7 +1797,7 @@ const AdminDashboard = ({
     const newService = {
       id: parseInt(serviceId),
       name: newName,
-      rate: `$${rateVal.toFixed(2)}`,
+      rate: `$${rateVal}`,
       min: minVal,
       max: maxVal,
       category: newCategory,
@@ -1929,6 +1830,42 @@ const AdminDashboard = ({
       } catch (error) {
         handleFirestoreError(error, OperationType.DELETE, `services/${id}`);
       }
+    }
+  };
+
+  const handleDeleteAllServices = async () => {
+    setIsDeletingAll(true);
+    console.log("Starting deletion of all services...");
+    try {
+      const querySnapshot = await getDocs(collection(db, 'services'));
+      console.log(`Found ${querySnapshot.size} services to delete.`);
+      
+      if (querySnapshot.empty) {
+        showToast('No services to delete.', 'error');
+        setIsDeletingAll(false);
+        setShowDeleteConfirm(false);
+        return;
+      }
+      
+      // Delete in chunks of 100 to avoid batch limits and timeouts
+      const docs = querySnapshot.docs;
+      for (let i = 0; i < docs.length; i += 100) {
+        const chunk = docs.slice(i, i + 100);
+        const batch = writeBatch(db);
+        chunk.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+        console.log(`Deleted chunk ${i / 100 + 1}`);
+      }
+      
+      showToast('All services deleted successfully!', 'success');
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error("Error deleting all services:", error);
+      showToast('Failed to delete all services.', 'error');
+    } finally {
+      setIsDeletingAll(false);
     }
   };
 
@@ -2077,7 +2014,7 @@ const AdminDashboard = ({
         });
       }
       
-      showToast(addedAmount !== undefined ? `Added $${addedAmount.toFixed(2)} to user balance!` : 'User balance updated!', "success");
+      showToast(addedAmount !== undefined ? `Added $${addedAmount.toFixed(4)} to user balance!` : 'User balance updated!', "success");
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
     }
@@ -2197,23 +2134,6 @@ const AdminDashboard = ({
       <div className="flex flex-col md:flex-row items-center justify-between bg-white p-6 rounded-3xl shadow-xl gap-4">
         <h2 className="text-smm-text-dark font-black text-2xl uppercase tracking-tight">Admin Control Center</h2>
         <div className="flex flex-wrap gap-2">
-          <button 
-            onClick={handleSeedBulk}
-            disabled={isSeeding}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest flex items-center gap-2 ${isSeeding ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl'}`}
-          >
-            {isSeeding ? (
-              <>
-                <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-                Seeding...
-              </>
-            ) : (
-              <>
-                <Database size={14} />
-                Seed Bulk Services
-              </>
-            )}
-          </button>
           <button 
             onClick={() => setActiveTab('dashboard')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
@@ -2378,31 +2298,41 @@ const AdminDashboard = ({
                 >
                   Add Service
                 </button>
-                <button 
-                  type="button"
-                  onClick={handleSeedBulk}
-                  disabled={isSeeding}
-                  className={`flex-1 py-4 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${isSeeding ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
-                >
-                  {isSeeding ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Seeding...
-                    </>
-                  ) : (
-                    <>
-                      <Database size={16} />
-                      Seed Bulk Services
-                    </>
-                  )}
-                </button>
               </div>
             </form>
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <h3 className="text-smm-text-dark font-bold">Current Services ({filteredServices.length})</h3>
+              <div className="flex items-center gap-4">
+                <h3 className="text-smm-text-dark font-bold">Current Services ({filteredServices.length})</h3>
+                {showDeleteConfirm ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-rose-600 uppercase">Confirm Delete All?</span>
+                    <button 
+                      onClick={handleDeleteAllServices}
+                      disabled={isDeletingAll}
+                      className="px-3 py-1 bg-rose-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-rose-700 transition-colors shadow-sm disabled:opacity-50"
+                    >
+                      {isDeletingAll ? 'Deleting...' : 'Yes, Delete All'}
+                    </button>
+                    <button 
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={isDeletingAll}
+                      className="px-3 py-1 bg-slate-200 text-slate-600 text-[10px] font-black uppercase rounded-lg hover:bg-slate-300 transition-colors shadow-sm disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="px-3 py-1 bg-rose-500 text-white text-[10px] font-black uppercase rounded-lg hover:bg-rose-600 transition-colors shadow-sm"
+                  >
+                    Delete All Services
+                  </button>
+                )}
+              </div>
               <div className="flex items-center gap-2 w-full sm:max-w-xs">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -2429,7 +2359,7 @@ const AdminDashboard = ({
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                    <th className="px-6 py-4">ID</th>
+                    <th className="px-6 py-4">Service ID</th>
                     <th className="px-6 py-4">Service</th>
                     <th className="px-6 py-4">Category</th>
                     <th className="px-6 py-4">Rate</th>
@@ -3015,7 +2945,7 @@ const AdminDashboard = ({
                               className="w-24 px-2 py-1 bg-white border border-slate-200 rounded text-xs"
                             />
                           ) : (
-                            `$${(u.balance || 0).toFixed(2)}`
+                            `$${(u.balance || 0).toFixed(4)}`
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
@@ -4219,6 +4149,7 @@ export default function App() {
 
     // Real-time services
     const servicesUnsubscribe = onSnapshot(collection(db, 'services'), (snapshot) => {
+      console.log(`Services snapshot received. Count: ${snapshot.size}`);
       const servicesList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setServices(servicesList);
     }, (error) => {
@@ -4367,10 +4298,7 @@ export default function App() {
 
   // Auto-seed services if admin and empty
   useEffect(() => {
-    if (isAdmin && isLoggedIn && isAuthReady && services.length === 0) {
-      console.log("Admin detected and no services found. Auto-seeding...");
-      seedBulkServices();
-    }
+    // Seeding completely removed as per user request
   }, [isAdmin, isLoggedIn, isAuthReady, services.length]);
 
   const handleLogin = () => {
