@@ -1620,20 +1620,20 @@ const AddFunds = ({
                 Include your username in the payment note
               </p>
               <a 
-                href="https://www.paypal.me/CARDIEGO" 
+                href="https://www.paypal.me/mubasshir875" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:bg-blue-700 transition-all hover:scale-105"
               >
                 <ExternalLink size={20} />
-                Go to PayPal.me/CARDIEGO
+                Go to PayPal.me/mubasshir875
               </a>
             </div>
 
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
               <h4 className="text-smm-text-dark font-black text-xs uppercase tracking-widest mb-3">Instructions:</h4>
               <ul className="text-[11px] text-slate-500 font-bold space-y-2 uppercase tracking-wide">
-                <li>• Click the link above to open PayPal.me/CARDIEGO.</li>
+                <li>• Click the link above to open PayPal.me/mubasshir875.</li>
                 <li>• Enter the amount you wish to add to your balance.</li>
                 <li>• <span className="text-blue-600">IMPORTANT:</span> Add your username or email in the payment note.</li>
                 <li>• Funds will be added manually to your account within 1-12 hours.</li>
